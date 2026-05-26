@@ -1,0 +1,659 @@
+<#@ output extension=".xml" #>
+<#@ include file="Variables.t4" #>
+<#
+string playerChoices = "";
+for (var i = 1; i <= playerCount; i++)
+{
+  var paddedIndex = i.ToString().PadLeft(2, '0');
+	playerChoices += $"        <choice name=\"%%NameP{ paddedIndex }%%\" value=\"{i}\" sourceid=\"Player{i}\" condition=\"$Total_Players > {i - 1}\" />";
+  if (i < playerCount) { playerChoices += Environment.NewLine; }
+}
+#>
+<?xml version='1.0' encoding='utf-8'?>
+<functions>
+  <category name="Pop Up Vars">
+    <function export="showHideSyncPopup" name="Set Show Popup Sync Var" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="Toggle" name="What To Do" type="mcstring">
+        <choice name="Set to True" value="true" />
+        <choice name="Set to False" value="false" />
+        <choice name="Toggle" value="Toggle" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Controls">
+    <function alias="transport" export="transport:Pause" name="Pause" repeatrate="0" buttontag="Pause">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="pause" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="transport" export="transport:Play" name="Play" repeatrate="0" buttontag="Play">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="play" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="transport" export="transport:Stop" name="Stop" repeatrate="0" buttontag="Stop">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="stop" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="transport" export="transport:Next" name="Next" repeatrate="0" buttontag="Skip Forward">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="next" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="transport" export="transport:Previous" name="Previous" repeatrate="0" buttontag="Skip Back">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="previous" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="transport" export="transport:Repeat" name="Toggle Repeat" repeatrate="0" buttontag="Repeat">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="repeat" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="transport" export="transport:Shuffle" name="Toggle Shuffle" repeatrate="0" buttontag="Shuffle">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="shuffle" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="playerVolume" export="playerVolume:Set" name="Set Volume" repeatrate="0" buttontag="Volume">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="set" name="Volume Up Down Set" type="string" />
+      <parameter description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  
+    <function alias="playerVolume" export="playerVolume:Up" name="Volume Up" repeatrate="0" buttontag="Volume Up">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="up" name="Volume Up Down Set" type="string" />
+      <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function alias="playerVolume" export="playerVolume:Down" name="Volume Down" repeatrate="0" buttontag="Volume Down">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="down" name="Volume Up Down Set" type="string" />
+      <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+        
+    <function alias="playerVolume" export="playerVolume:Mute" name="Toggle Mute" repeatrate="0" buttontag="Mute">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="muting" name="Volume Up Down Set" type="string" />
+      <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+        
+    <function alias="playerVolume" export="playerVolume:MuteOn" name="Mute On" repeatrate="0" buttontag="Mute On">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="muting 1" name="Volume Up Down Set" type="string" />
+      <parameter default="0" description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+            
+    <function alias="playerVolume" export="playerVolume:MuteOff" name="Mute Off" repeatrate="0" buttontag="Mute Off">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="muting 0" name="Volume Up Down Set" type="string" />
+      <parameter default="" description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="playerPower" export="playerPower:TogglePower" name="Toggle Power" repeatrate="0" buttontag="Power">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="3" name="Power On Off Toggle" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="playerPower" export="playerPower:PowerOn" name="Power On" repeatrate="0" buttontag="Power On">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="1" name="Power On Off Toggle" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="playerPower" export="playerPower:PowerOff" name="Power Off" repeatrate="0" buttontag="Power Off">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="0" name="Power On Off Toggle" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="jumptoPlayPosition" name="Jump to Position" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter description="Position in Seconds" name="Position" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="transport" name="Transport Control" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="Control" type="mcstring">
+        <choice name="Play" value="play" />
+        <choice name="Play/Pause" value="pause" />
+        <choice name="Stop" value="stop" />
+        <choice name="Next Track" value="next" />
+        <choice name="Previous Track" value="previous" />
+        <choice name="Pandora Thumbs Up" value="pandora_love" />
+        <choice name="Pandora Thumbs Down" value="pandora_ban" />
+        <choice name="Pandora Tired" value="pandora_tired" />
+        <choice name="Shuffle" value="shuffle" />
+        <choice name="Repeat" value="repeat" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="playerVolume" name="Player Volume" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="Volume Up Down Set" type="mcstring">
+        <choice name="Set" value="set" />
+        <choice name="Up" value="up" />
+        <choice name="Down" value="down" />
+        <choice name="Mute On" value="muting 1" />
+        <choice name="Mute Off" value="muting 0" />
+        <choice name="Mute Toggle" value="muting" />
+      </parameter>
+      <parameter description="Volume Level [0-100]" name="Volume" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="playerPower" name="Player Power" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="3" name="Power On Off Toggle" type="mcinteger">
+        <choice name="On" value="1" />
+        <choice name="Off" value="0" />
+        <choice name="Toggle" value="3" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Player Sync">
+    <function export="syncListSelection" name="Select From Sync List" repeatrate="0">
+        <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter default="Toggle" name="Sync or Unsync" type="mcstring">
+        <choice name="Sync" value="Sync" />
+        <choice name="Unsync" value="Sync" />
+        <choice name="Toggle" value="Toggle" />
+        <choice name="Preset Variable" value="Variable" /> 
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="setSyncType" name="Set Sync Type" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="Toggle" name="Show Hide Variable" type="mcstring">
+        <choice name="Sync" value="Sync" />
+        <choice name="Release Sync" value="ReleaseSync" />
+        <choice name="Toggle" value="Toggle" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="syncPlayerToPlayer" name="Sync / Unsync Player" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="With /From Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="Toggle" name="To Do" type="mcstring">
+        <choice name="Sync" value="Sync" />
+        <choice name="Release Sync" value="ReleaseSync" />
+        <choice name="Toggle" value="Toggle" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Browse Lists">
+    <function export="browseSelectionAction:Favorite" name="Add (or delete) from Favorites" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="Favorite" name="Mode" type="string" />
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseSelectionAction:Play" name="Move from Browse List to Now Playing" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="Play" name="Mode" type="string" />
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseSelectionAction:AddEnd" name="Queue to end of Now Playing" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="AddEnd" name="Mode" type="string" />
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseSelectionAction:AddNext" name="Queue next in Now Playing" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="AddNext" name="Mode" type="string" />
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseSelection" name="Select From Browse List" repeatrate="0" buttontag="Browse">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseBack" name="Browse Back" repeatrate="0" buttontag="Browse Back">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="setBrowseMode" export="setBrowseMode:Select" name="Set Browse Mode to Select" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="0" name="Mode" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="setBrowseMode" export="setBrowseMode:Play" name="Set Browse Mode to Play Now" repeatrate="0" buttontag="NP Now">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="1" name="Mode" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="setBrowseMode" export="setBrowseMode:AddNext" name="Set Browse Mode to Queue Next in Now Playing" repeatrate="0" buttontag="NP Next">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="2" name="Mode" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="setBrowseMode" export="setBrowseMode:AddToEnd" name="Set Browse Mode to Queue to End of Now Playing" repeatrate="0" buttontag="NP Add">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="3" name="Mode" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="setBrowseMode" export="setBrowseMode:Favorite" name="Set Browse Mode to Toggle Favorite" repeatrate="0" buttontag="Add Preset">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter default="4" name="Mode" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="setBrowseMode" name="Set Browse Mode" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="Mode" type="mcinteger">
+        <choice name="Select Mode" value="0" /> 
+        <choice name="Play" value="1" />
+        <choice name="Add Next" value="2" />
+        <choice name="Add To End" value="3" />
+        <choice name="Favorites" value="4" /> 
+        <choice name="Toggle" value="99" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="setShowMoreOptionsPopup" name="Set Show More Options" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ToDo" type="mcstring">
+        <choice name="Show" value="true" />
+        <choice name="Hide" value="false" />
+        <choice name="Toggle" value="99" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="jumpToBrowseLocation" name="Jump to Browse Location" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="Service" type="mcstring">
+        <choice name="Favorites" value="favorites" />
+        <choice name="MyApps" value="myapps" />
+        <choice name="Pandora" value="pandora" />
+        <choice name="Shoutcast" value="shoutcast" />
+        <choice name="Spotify" value="spotifylogi" />
+        <choice name="Radio" value="radios" />
+        <choice name="Artists" value="artists" />
+        <choice name="Albums" value="albums" />
+        <choice name="Genres" value="genres" />
+        <choice name="Years" value="years" />
+        <choice name="Playlists" value="playlists" />
+        <choice name="Home menu" value="home_menu" />
+        <choice name="Home" value="home" />
+        <choice name="Music Folder" value="bmf" />
+        <choice name="New Music" value="new" />
+        <choice name="Sirius" value="sirius" />
+        <choice name="SKY.fm" value="skyfm" />
+        <choice name="Menu" value="menu" />
+        <choice name="Spotify Family 1" value="spotifyfamily1" />
+        <choice name="Spotify Family 2" value="spotifyfamily2" />
+        <choice name="Spotify Family 3" value="spotifyfamily3" />
+        <choice name="Spotify Family 4" value="spotifyfamily4" />
+        <choice name="Spotify Family 5" value="spotifyfamily5" />
+        <choice name="Spotify Family 6" value="spotifyfamily6" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Now Playing Lists">
+    <function export="playListSelection" name="Select From Play List" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter description="list index" max="999999" min="0" name="index" type="integer" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="setPlaylistMode" name="Set Playlist Mode" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="Player" type="mcinteger">
+        <choice name="Play" value="0" />        
+        <choice name="Select/Edit" value="1" />
+        <choice name="Toggle" value="99" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="adjustPlaylist" name="Adjust Playlist" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="Player" type="mcstring">
+        <choice name="Save" value="save" />
+        <choice name="Delete" value="delete" />
+        <choice name="Move Item Up" value="moveup" />
+        <choice name="Move Item Down" value="movedown" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>   
+  </category>
+
+  <category name="Keyboard">
+    <function export="setKeyBoardLayout" name="Set Keyboard Layout" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="0" name="Layout" type="mcinteger">
+        <choice name="Last Displayed" value="0" />
+        <choice name="Lowercase" value="1" />
+        <choice name="Uppercase" value="2" />
+        <choice name="Symbols" value="3" />
+        <choice name="Cycle Lower/Upper/Symbols" value="4" />
+        <choice name="Cycle Lower/Upper" value="5" />
+        <choice name="Cycle Symbols / Lowercase" value="6" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="EnterKeyBoardInput" name="Preset Keys From Keyboard" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="Key" type="mcinteger">
+        <choice name="1" value="26" />
+        <choice name="2" value="27" />
+        <choice name="3" value="28" />
+        <choice name="4" value="29" />
+        <choice name="5" value="30" />
+        <choice name="6" value="31" />
+        <choice name="7" value="32" />
+        <choice name="8" value="33" />
+        <choice name="9" value="34" />
+        <choice name="0" value="35" />
+        <choice name="a" value="0" />
+        <choice name="b" value="1" />
+        <choice name="c" value="2" />
+        <choice name="d" value="3" />
+        <choice name="e" value="4" />
+        <choice name="f" value="5" />
+        <choice name="g" value="6" />
+        <choice name="h" value="7" />
+        <choice name="i" value="8" />
+        <choice name="j" value="9" />
+        <choice name="k" value="10" />
+        <choice name="l" value="11" />
+        <choice name="m" value="12" />
+        <choice name="n" value="13" />
+        <choice name="o" value="14" />
+        <choice name="p" value="15" />
+        <choice name="q" value="16" />
+        <choice name="r" value="17" />
+        <choice name="s" value="18" />
+        <choice name="t" value="19" />
+        <choice name="u" value="20" />
+        <choice name="v" value="21" />
+        <choice name="w" value="22" />
+        <choice name="x" value="23" />
+        <choice name="y" value="24" />
+        <choice name="z" value="25" />
+        <choice name="Return/Enter" value="101" />
+        <choice name="Delete" value="102" />
+        <choice name="Clear" value="103" />
+        <choice name="Space" value="104" />
+      </parameter>
+      <parameter name="view" type="deviceid" />
+    </function>
+
+    <function export="sendSpecificKey" name="Write Specific Key" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="Key" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="hideKeyboard" name="Hide Keyboard" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Set or Play Default Station">
+    <function export="playDefaultStation" name="Play Default Station" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="saveDefaultStartup" name="Save Default Station" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Play Specific Stream">
+    <function export="playDirectUrl" name="Play a Direct URL" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="URL" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+    
+    <function export="playRandomPlaylist" name="Play a Random Playlist" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="" name="subfolder" description="Favorites Subfolder Name" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+  </category>
+
+  <category name="Print Out Data to Diagnostic Driver">
+    <function export="printHomeMenu" name="Print Home Menu Items to Log File" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="printNowPlayingUrl" name="Print Now Playing URL to Log File" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>    
+  </category>
+
+  <category name="Testing">
+    <function export="subscribeTest" name="Subscribe" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="printBuffer" name="PrintBuffer" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="getPlayerStatus" name="Get Player Status" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseTest" name="Browse Test" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="Service" type="mcstring">
+        <choice name="Favorites" value="favorites" />
+        <choice name="MyApps" value="myapps" />
+        <choice name="Pandora" value="pandora" />
+        <choice name="Shoutcast" value="shoutcast" />
+        <choice name="Spotify" value="spotify" />
+        <choice name="Radio" value="radios" />
+        <choice name="Artists" value="artists" />
+        <choice name="Albums" value="albums" />
+        <choice name="Genres" value="genres" />
+        <choice name="Years" value="years" />
+        <choice name="Playlists" value="playlists" />
+        <choice name="Home menu" value="home_menu" />
+        <choice name="Home" value="home" />
+        <choice name="Music Folder" value="bmf" />
+        <choice name="New Music" value="new" />
+        <choice name="Sirius" value="sirius" />
+        <choice name="SKY.fm" value="skyfm" />
+        <choice name="Menu" value="menu" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="browseSubMenuTest" name="Sub Browse Test" repeatrate="0">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+      </parameter>
+      <parameter name="Service" type="mcstring">
+        <choice name="Pandora" value="pandora" />
+        <choice name="Shoutcast" value="shoutcast" />
+        <choice name="Spotify" value="spotify" />
+        <choice name="Sirius" value="sirius" />
+        <choice name="SKY.fm" value="skyfm" />
+      </parameter>
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function export="changeDebugMode" name="Change Debug Mode" repeatrate="0">
+      <parameter name="Debug" type="mcstring">
+        <choice name="Print JSON" value="JSON" />
+        <choice name="Raw Incoming Data" value="RAW" />
+        <choice name="Post Commands" value="POST" />
+        <choice name="Incoming Menu Data" value="MENU" />
+      </parameter>
+      <parameter default="2" name="To Do" type="mcstring">
+        <choice name="On" value="1" />
+        <choice name="Off" value="0" />
+        <choice name="Toggle" value="2" />
+      </parameter>
+    </function>
+  </category>
+</functions>

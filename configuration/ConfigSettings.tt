@@ -1,0 +1,85 @@
+<#@ output extension=".xml" #>
+<#@ include file="Variables.t4" #>
+<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <category advanced="false" description="" name="Serial">
+    <setting description="Enter serial number" name="Serial Number" type="string" variable="SerialNumber" />
+  </category>
+
+  <category description="Total Players to control" hidden="false" name="Total Player Count">
+    <setting default="1" description="Total Players" name="Total Players to Control" type="mcinteger" variable="Total_Players" countsourceid="Player">
+<#
+for (var i = 1; i <= playerCount; i++)
+{
+#>
+      <choice name="<#= i #>" value="<#= i #>" />
+<#
+}
+#>
+    </setting>
+  </category>
+
+
+  <category description="Default Server" name="The Default Server players will connect to">
+    <setting default="Music Server" description="Server Name" name="Server Name" type="string" variable="Defaul_Server_Name" />
+    <setting default="192.168.2.115" description="IP address of server players are connected to" name="TCP Address" type="string" variable="Defaul_Server_IP" />
+    <setting default="9000" description="Squeezebox Server's TCP Control Port (Default is 9000)" name="Squeezebox TCP Port" type="integer" variable="Default_Server_TCP_Port" />
+  </category>
+
+<#
+for (var i = 1; i <= playerCount; i++)
+{
+	string paddedIndex = i.ToString().PadLeft(2, '0');
+#>
+  <category condition="$Total_Players > <#= i - 1 #>" description="P<#= paddedIndex #> Info" hidden="false" name="P<#= paddedIndex #> Info" sourceid="Player<#= i #>">
+    <setting default="P<#= paddedIndex #>" description="Player Name" name="P<#= paddedIndex #> Name" type="string" variable="NameP<#= paddedIndex #>" />
+    <setting default="false" description="Use Default Server" name="Use Alternative Server" type="boolean" variable="Use_Alt_Server_P<#= paddedIndex #>" />
+    <setting condition="$Use_Alt_Server_P<#= paddedIndex #>" default="192.168.2.115" description="IP address of server the player needs to connected to" name="TCP Address" type="string" variable="Server_IP_P<#= paddedIndex #>" />
+    <setting condition="$Use_Alt_Server_P<#= paddedIndex #>" default="9000" description="Squeezebox Server's TCP Control Port (Default is 9000)" name="Squeezebox TCP Port" type="integer" variable="Server_TCP_Port_P<#= paddedIndex #>" />
+    <setting description="Custom Parent Menu Example" name="Use Custom Parent Menu" type="boolean" variable="Use_Custom_Parent_Menu_P<#= paddedIndex #>" />
+    <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Order" type="string" variable="Custom_Menu_Order_P<#= paddedIndex #>" />
+    <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Names" type="string" variable="Custom_Menu_Names_P<#= paddedIndex #>" />
+    <setting default="true" description="Skip First Pandora Menu and jump to Stations" name="Skip First Pandora Menu" type="boolean" variable="SkipFirstPandoraMenuP<#= paddedIndex #>" />
+    <setting default="true" description="Hide MySqueezebox.com from favorites" name="Hide MySqueezebox.com from favorites" type="boolean" variable="Favorites_Hide_MySqueeze_P<#= paddedIndex #>" />
+  </category>
+
+<#
+}
+#>
+  <category advanced="true" description="Remote Control Defaults" hidden="false" name="Remote Control Defaults">
+    <setting default="0" description="Total Number of Remotes to change" name="Total Remotes" type="mcinteger" variable="TotalRemotes">
+<#
+for (var i = 1; i <= remoteCount; i++)
+{
+#>
+      <choice name="<#= i - 1 #>" value="<#= i - 1 #>" />
+<#
+}
+#>
+    </setting>
+<#
+for (var i = 1; i <= remoteCount; i++)
+{
+#>
+    <setting condition="$TotalRemotes > <#= i - 1 #>" default="" description="Remote Control Name R<#= i #>" name="Remote Control Name R<#= i #>" type="string" variable="NameR<#= i #>" />
+    <setting condition="$TotalRemotes > <#= i - 1 #>" description="Macro to Redirect to the keyboard Page" name="Remote Control Keyboard Page" type="sysmacro" variable="KeyboardPageMR<#= i #>" />
+    <setting condition="$TotalRemotes > <#= i - 1 #>" description="Macro to Redirect to the Browselist Page" name="Remote Control Browselist Page" type="sysmacro" variable="BrowsePageMR<#= i #>" />
+    <setting condition="$TotalRemotes > <#= i #>" default="" description="" name="" type="string" variable="SpacerR<#= i #>" />
+<#
+}
+#>
+  </category>
+
+  <category advanced="true" description="Driver debug options" hidden="false" name="Debug Settings">
+    <setting description="Enable verbose debug output" name="Enable Trace" type="boolean" variable="DebugTrace" />
+    <setting description="Print Output Commands" name="Print Output post info" type="boolean" variable="DebugPrintPosts" />
+    <setting description="Print Incoming JSON" name="Print Incoming JSON Responses" type="boolean" variable="DebugPrintIncoming" />
+    <setting description="Print Incoming RAW Data" name="Print Incoming RAW Data" type="boolean" variable="DebugRAWIncoming" />
+    <setting description="Print Incoming Menu Data" name="Print Incoming Menu Data" type="boolean" variable="DebugMenuIncoming" />
+  </category>
+
+  <category description="Bonus Extra Items" hidden="true" name="Driver Extras">    
+    <setting description="Use Music Information Add-On" name="Use Music Information Add-On" type="boolean" variable="UseMusicInfoAddOn" />
+    <setting condition="$UseMusicInfoAddOn" default="2101" description="TCP Port Music Information is running on" name="TCP Port Music Information is running on" type="integer" variable="MusicInfoAddOnTCPPort" />
+  </category>
+</configuration>

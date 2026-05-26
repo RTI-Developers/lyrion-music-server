@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<driverManifest>
+<driver
+  author="JBWORKS"
+  configSettingsStream="ConfigSettings.xml"
+  copyright=""
+  deviceManufacturer="Squeezebox/vortexbox"
+  deviceModel="Squeezebox"
+  driverVersion="0.95"
+  helpTextStream="instructions.rtf"
+  id="{9ABA89AC-DFB4-478D-8E95-A8DB901BE9D4}"
+  minimumRuntimeVersion="20"		
+  minimumSoftwareVersion="9.9"
+  minimumApexVersion="10.0"
+  name="Multi-Instance Squeezebox"
+  processorType="XP-8"
+  deviceDescriptionStream="DeviceDescription.xml"
+  systemEventsStream="SystemEvents.xml" 
+  systemFunctionsStream="SystemFunctions.xml"
+  systemVariablesStream="SystemVariables.xml">
+ 		<processorScript stream="index.js" />
+
+		<package>
+			<output filename="squeezebox-multi-instance" public="true" />
+			<include filename="index.js"/>
+			<include filename="ConfigSettings.xml"/>
+			<include filename="DriverManifest.xml"/>
+			<include filename="instructions.rtf"/>
+			<include filename="DeviceDescription.xml"/>
+			<include filename="SystemFunctions.xml"/>
+			<include filename="SystemVariables.xml"/>
+			<description>
+				This driver allows IP communicatino Squeezebox servers.
+			</description>
+		</package>
+  </driver>
+</driverManifest>

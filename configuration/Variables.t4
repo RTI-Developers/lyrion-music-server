@@ -1,0 +1,6 @@
+<#
+
+var playerCount = 20;
+var remoteCount = 20;
+
+#>

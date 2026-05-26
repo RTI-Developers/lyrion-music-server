@@ -1,0 +1,21 @@
+<#@ output extension=".xml" #>
+<#@ include file="Variables.t4" #>
+<?xml version='1.0' encoding='utf-8'?>
+<events>
+<#
+for (var i = 1; i <= playerCount; i++)
+{
+	string paddedIndex = i.ToString().PadLeft(2, '0');
+#>
+  <category name="[P<#= paddedIndex #>] %%NameP<#= paddedIndex #>%%" sourceid="Player<#= i #>">
+    <event name="%%NameP<#= paddedIndex #>%% Powered On" tag="PONP<#= paddedIndex #>" />
+    <event name="%%NameP<#= paddedIndex #>%% Powered Off" tag="POFFP<#= paddedIndex #>" />
+    <event name="%%NameP<#= paddedIndex #>%% Playing" tag="PlayingP<#= paddedIndex #>" />
+    <event name="%%NameP<#= paddedIndex #>%% Paused" tag="PausedP<#= paddedIndex #>" />
+    <event name="%%NameP<#= paddedIndex #>%% Stopped" tag="StoppedP<#= paddedIndex #>" />
+    <event name="%%NameP<#= paddedIndex #>%% Song Changed" tag="SongChangeP<#= paddedIndex #>" />
+  </category>
+<#
+}
+#>
+</events>

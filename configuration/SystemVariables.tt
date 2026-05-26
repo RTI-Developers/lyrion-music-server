@@ -1,0 +1,148 @@
+<#@ output extension=".xml" #>
+<#@ include file="Variables.t4" #>
+<?xml version="1.0" encoding="utf-8"?>
+<variables>
+  <category name="Player List">
+    <variable name="Driver Configured Players List" sysvar="ConfiguredPlayersList" type="list" />
+  </category>
+
+<#
+for (var i = 1; i <= playerCount; i++)
+{
+	string paddedIndex = i.ToString().PadLeft(2, '0');
+#>
+  
+<category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Browsing" sourceid="Player<#= i #>">
+  <variable name="List Title" sample="List Title" sysvar="BrowseListTitleP<#= paddedIndex #>%" type="string" buttontag="Browse Back" />
+  <variable name="Browse List" sysvar="BrowseListP<#= paddedIndex #>%" type="list" buttontag="Browse" />
+  <variable name="Total Items in Browselist" sysvar="BrowseListSizeP<#= paddedIndex #>%" type="integer" />
+  <variable name="Showing More Options for (BrowseList)" sample="true" sysvar="ShowingMoreOptionsBrowseP<#= paddedIndex #>%" type="boolean" />
+  <variable name="More Options Mode Available" sample="true" sysvar="MoreOptionsAvailableP<#= paddedIndex #>%" type="boolean" />
+  <variable name="More Options Mode NOT Available" sample="true" sysvar="MoreOptionsNotAvailableP<#= paddedIndex #>%" type="boolean" />
+  <variable format="L:0:Enter/Select:1:Play:2:Add Next:3:Add to End:4:Favorites" name="Select Mode (Integer)" sample="1" sysvar="SelectModeIntegerP<#= paddedIndex #>%" type="integer" />
+  <variable name="Select Mode" sample="true" sysvar="SelectModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="Favorties Mode" sample="true" sysvar="FavoritesModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="Play Mode" sample="true" sysvar="PlayModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="Add To End Mode" sample="true" sysvar="AddEndModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="Add Next Mode" sample="true" sysvar="AddNextModeP<#= paddedIndex #>%" type="boolean" />
+</category>
+
+<category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Now Playing" sourceid="Player<#= i #>">
+  <variable name="Now Playing List" sysvar="NowPlayingListP<#= paddedIndex #>%" type="list" />
+  <variable format="L:0:Play:1:Select" name="Playlist Mode (Integer)" sample="1" sysvar="PlayListModeIntegerP<#= paddedIndex #>%" type="integer" />
+  <variable name="Playlist Play Mode" sample="true" sysvar="PlayListPlayModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="Playlist Select/Edit Mode" sample="true" sysvar="PlayListSelectModeP<#= paddedIndex #>%" type="boolean" />
+  <variable name="More then 1 item in Now Playing list" sample="true" sysvar="MoreThen1NowPlayingP<#= paddedIndex #>%" type="boolean" />
+</category>
+
+<category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Info" sourceid="Player<#= i #>">
+    <variable name="Player Name" sample="P<#= paddedIndex #> Name" sysvar="NameP<#= paddedIndex #>" type="string" />
+    <variable name="Model" sample="squeezelite" sysvar="Model<#= paddedIndex #>" type="string" />
+    <variable name="Player ID" sample="00:00:00:00:00" sysvar="MACP<#= paddedIndex #>" type="string" />
+    <variable name="Connected" sample="false" sysvar="ConnectedP<#= paddedIndex #>" type="boolean" />
+    <variable name="NotConnected" sample="false" sysvar="NotConnectedP<#= paddedIndex #>" type="boolean" />
+    <variable name="Powered On" sample="true" sysvar="PoweredOnP<#= paddedIndex #>" type="boolean" />
+    <variable name="Powered Off" sample="false" sysvar="PoweredOffP<#= paddedIndex #>" type="boolean" />
+    <variable format="B:D:I" name="Playing" sample="true" sysvar="PlayingP<#= paddedIndex #>" type="boolean" />
+    <variable name="Current Title" sample="Title" sysvar="TitleP<#= paddedIndex #>" type="string" buttontag="NP Title" />
+    <variable name="Current Album" sample="Album" sysvar="AlbumP<#= paddedIndex #>" type="string" buttontag="NP Album" />
+    <variable name="Current Artist" sample="Artist" sysvar="ArtistP<#= paddedIndex #>" type="string" buttontag="NP Artist" />
+    <variable name="Station /Playlist Name" sample="Station Play List Name" sysvar="StationNameP<#= paddedIndex #>" type="string" />
+    <variable name="Progress (Display)" sample="02:21" sysvar="ProgressP<#= paddedIndex #>" type="string" buttontag="NP Elapsed" />
+    <variable max="100" min="0" name="Progress (Progress Bar)" sysvar="ProgressBarP<#= paddedIndex #>" type="integer" buttontag="NP Progress" />
+    <variable name="Duration (Display)" sample="24:06" sysvar="DurationP<#= paddedIndex #>" type="string" buttontag="NP Duration" />
+    <variable name="Remaining Time (Display)" sample="02:21" sysvar="RemainingP<#= paddedIndex #>" type="string" />
+    <variable name="Bit Rate" sample="BitRate" sysvar="BitRateP<#= paddedIndex #>" type="string" />
+    <variable name="Type" sample="Type" sysvar="TypeP<#= paddedIndex #>" type="string" />
+    <variable max="100" min="0" name="Player Volume Level" sysvar="VolumeLevelP<#= paddedIndex #>" type="integer" />
+    <variable name="Volume Muted" sysvar="VolumeMutedP<#= paddedIndex #>" type="boolean" />
+    <variable name="Repeat" sample="false" sysvar="RepeatP<#= paddedIndex #>" type="boolean" />
+    <variable format="L:0:Off:1:Song:2:After Done" name="Repeat Type" sysvar="RepeatTypeP<#= paddedIndex #>" type="integer" />
+    <variable name="Shuffle" sample="false" sysvar="ShuffleP<#= paddedIndex #>" type="boolean" />
+    <variable format="L:0:Off:1:Song:2:Album" name="Shuffle Type" sysvar="ShuffleTypeP<#= paddedIndex #>" type="integer" />
+    <variable name="Cover Art" sysvar="CurrentCoverURLP<#= paddedIndex #>" type="image" buttontag="NP Cover" />
+    <variable format="B:false:true" name="Playing Pandora" sample="true" sysvar="PlayingPandoraP<#= paddedIndex #>" type="boolean" />
+    <variable format="B:false:true" name="NOT Playing Pandora" sample="true" sysvar="NotPlayingPandoraP<#= paddedIndex #>" type="boolean" />
+    <variable format="B:false:true" name="Pandora Has Been Thumbs Upped" sample="true" sysvar="PandoraThumbsUpP<#= paddedIndex #>" type="boolean" />
+    <variable name="Cant Seek" sample="false" sysvar="CantSeekP<#= paddedIndex #>" type="boolean" />
+    <variable name="Can Seek" sample="true" sysvar="CanSeekP<#= paddedIndex #>" type="boolean" />
+    <variable name="Duration Available" sample="true" sysvar="DurationAvailableP<#= paddedIndex #>" type="boolean" /> 
+    <variable name="Song Title Available" sample="true" sysvar="SongTitleAvailableP<#= paddedIndex #>" type="boolean" />
+    <variable name="Artist Title Available" sample="true" sysvar="ArtistTitleAvailableP<#= paddedIndex #>" type="boolean" />
+    <variable name="Album Title Available" sample="true" sysvar="AlbumTitleAvailableP<#= paddedIndex #>" type="boolean" />
+    <variable name="Synced Players" sample="Player 1,Player 2" sysvar="SyncedPlayerStringP<#= paddedIndex #>" type="string" />
+    <variable name="Player is Sync Master" sample="true" sysvar="SyncMasterP<#= paddedIndex #>" type="boolean" />
+    <variable name="Player is Sync Slave" sample="true" sysvar="SyncSlaveP<#= paddedIndex #>" type="boolean" />
+    <variable name="Sync a Player Popup Visible" sysvar="SyncPopupVisibleP<#= paddedIndex #>%" type="boolean" />
+    <variable name="Sync List Visible" sysvar="SyncP<#= paddedIndex #>%" type="boolean" />
+    <variable name="Release Sync List Visible" sysvar="ReleaseSyncP<#= paddedIndex #>%" type="boolean" />
+  </category>
+
+  <category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Keyboard" sourceid="Player<#= i #>">
+    <variable name="a" sample="a" sysvar="KeyBoardP<#= paddedIndex #>Key0%" type="string" />
+    <variable name="b" sample="b" sysvar="KeyBoardP<#= paddedIndex #>Key1%" type="string" />
+    <variable name="c" sample="c" sysvar="KeyBoardP<#= paddedIndex #>Key2%" type="string" />
+    <variable name="d" sample="d" sysvar="KeyBoardP<#= paddedIndex #>Key3%" type="string" />
+    <variable name="e" sample="e" sysvar="KeyBoardP<#= paddedIndex #>Key4%" type="string" />
+    <variable name="f" sample="f" sysvar="KeyBoardP<#= paddedIndex #>Key5%" type="string" />
+    <variable name="g" sample="g" sysvar="KeyBoardP<#= paddedIndex #>Key6%" type="string" />
+    <variable name="h" sample="h" sysvar="KeyBoardP<#= paddedIndex #>Key7%" type="string" />
+    <variable name="i" sample="i" sysvar="KeyBoardP<#= paddedIndex #>Key8%" type="string" />
+    <variable name="j" sample="j" sysvar="KeyBoardP<#= paddedIndex #>Key9%" type="string" />
+    <variable name="k" sample="k" sysvar="KeyBoardP<#= paddedIndex #>Key10%" type="string" />
+    <variable name="l" sample="l" sysvar="KeyBoardP<#= paddedIndex #>Key11%" type="string" />
+    <variable name="m" sample="m" sysvar="KeyBoardP<#= paddedIndex #>Key12%" type="string" />
+    <variable name="n" sample="n" sysvar="KeyBoardP<#= paddedIndex #>Key13%" type="string" />
+    <variable name="o" sample="o" sysvar="KeyBoardP<#= paddedIndex #>Key14%" type="string" />
+    <variable name="p" sample="p" sysvar="KeyBoardP<#= paddedIndex #>Key15%" type="string" />
+    <variable name="q" sample="q" sysvar="KeyBoardP<#= paddedIndex #>Key16%" type="string" />
+    <variable name="r" sample="r" sysvar="KeyBoardP<#= paddedIndex #>Key17%" type="string" />
+    <variable name="s" sample="s" sysvar="KeyBoardP<#= paddedIndex #>Key18%" type="string" />
+    <variable name="t" sample="t" sysvar="KeyBoardP<#= paddedIndex #>Key19%" type="string" />
+    <variable name="u" sample="u" sysvar="KeyBoardP<#= paddedIndex #>Key20%" type="string" />
+    <variable name="v" sample="v" sysvar="KeyBoardP<#= paddedIndex #>Key21%" type="string" />
+    <variable name="w" sample="w" sysvar="KeyBoardP<#= paddedIndex #>Key22%" type="string" />
+    <variable name="x" sample="x" sysvar="KeyBoardP<#= paddedIndex #>Key23%" type="string" />
+    <variable name="y" sample="y" sysvar="KeyBoardP<#= paddedIndex #>Key24%" type="string" />
+    <variable name="z" sample="z" sysvar="KeyBoardP<#= paddedIndex #>Key25%" type="string" />
+    <variable name="1" sample="1" sysvar="KeyBoardP<#= paddedIndex #>Key26%" type="string" />
+    <variable name="2" sample="2" sysvar="KeyBoardP<#= paddedIndex #>Key27%" type="string" />
+    <variable name="3" sample="3" sysvar="KeyBoardP<#= paddedIndex #>Key28%" type="string" />
+    <variable name="4" sample="4" sysvar="KeyBoardP<#= paddedIndex #>Key29%" type="string" />
+    <variable name="5" sample="5" sysvar="KeyBoardP<#= paddedIndex #>Key30%" type="string" />
+    <variable name="6" sample="6" sysvar="KeyBoardP<#= paddedIndex #>Key31%" type="string" />
+    <variable name="7" sample="7" sysvar="KeyBoardP<#= paddedIndex #>Key32%" type="string" />
+    <variable name="8" sample="8" sysvar="KeyBoardP<#= paddedIndex #>Key33%" type="string" />
+    <variable name="9" sample="9" sysvar="KeyBoardP<#= paddedIndex #>Key34%" type="string" />
+    <variable name="0" sample="0" sysvar="KeyBoardP<#= paddedIndex #>Key35%" type="string" />
+    <variable name="Shifted" sample="false" sysvar="KeyBoardPUpperCaseP<#= paddedIndex #>%" type="boolean" />
+    <variable name="Not Showing Symbols" sample="true" sysvar="NotShowingSymbolsP<#= paddedIndex #>%" type="boolean" />
+    <variable name="Showing Symbols" sample="false" sysvar="ShowingSymbolsP<#= paddedIndex #>%" type="boolean" />
+    <variable name="Entered Text" sample="Entered Keyboard Text" sysvar="KeyboardTextP<#= paddedIndex #>%" type="string" />
+    <variable name="Showing Keyboard" sample="true" sysvar="ShowingKeyboardP<#= paddedIndex #>%" type="boolean" />
+  </category>
+
+<#
+}
+#>
+  <category name="Debug Modes">
+    <variable name="Print RAW" sample="false" sysvar="PrintRAW" type="boolean" />
+    <variable name="Print Post" sample="false" sysvar="PrintPost" type="boolean" />
+    <variable name="Print JSON" sample="false" sysvar="PrintJSON" type="boolean" />
+    <variable name="Print Menu" sample="false" sysvar="PrintMenu" type="boolean" />
+  </category>
+
+  <category name="Extra Music Information">
+    <variable name="Artist Fan Art" sysvar="ArtistFanArt%" type="image" />
+    <variable name="Artist Bio" sysvar="ArtistBio%" type="list" />
+    <variable name="Album Info" sysvar="AlbumInfo%" type="list" />
+    <variable name="Album Tracks" sysvar="AlbumTracks%" type="list" />
+  </category>
+  
+  <category name="Driver Trial Info">
+    <variable name="Trial Expires on" sysvar="TrialExpiresOn" type="string" />
+    <variable name="Trial Expires in" sysvar="TrialExpireMinutes" type="string" />
+    <variable name="Trial Expired" sysvar="TrialTimeExpired" type="boolean" />
+  </category>
+
+</variables>

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "target": "es3",
+    "allowJs": true,
+    "outFile": "./dist/index.js",
+    "lib": [],
+    "module": "none",
+    "strictNullChecks": true,
+    "ignoreDeprecations": "5.0"
+  },
+  "files": [
+    "./src/Utilities.ts",
+    "./src/RtiFunctions.ts",
+    "./src/Licensing.ts",
+    "./src/Eventhandlers.ts",
+    "./src/Player.ts",
+    "./src/Remote.ts",
+    "./src/RemotePlayer.ts",
+    "./src/Server.ts",
+    "./src/index.ts",
+  ],
+  "include": ["./src/typings/*.d.ts", "./src/typings/*.ts"]
+}
