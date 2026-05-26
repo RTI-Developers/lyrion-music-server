@@ -19,29 +19,7 @@ function onTimerUpdatePlayerProgress(handle: number): void {
     }
 }
 
-function onCommRxExtraMusicInfo(data: string): void {
-    System.Print("We Should never see data here..Extra Music Info Incoming Data=" + data);
-}
-
-function onConnectionExtraMusicInfo(): void {
-    System.LogInfo(1, "Connected to Extra Music Information Driver");
-}
-
-function onDisconnectExtraMusicInfo(): void {
-    System.LogInfo(1, "Disconnected From Extra Music Information Driver");
-}
-
 function onCommRx(data: string, handle: number): void {
-    if (g_Trial_Expired == true) {
-        for (var r = 0; r < g_Remote_Ids.length; r++) {
-            var TrialExpiredName = "Trial Expired Driver is disabled";
-            g_RemotePlayers[g_Remote_Ids[r]].BrowseList.Open();
-            g_RemotePlayers[g_Remote_Ids[r]].BrowseList.RemoveAll();
-            g_RemotePlayers[g_Remote_Ids[r]].BrowseList.Insert(TrialExpiredName);
-            g_RemotePlayers[g_Remote_Ids[r]].BrowseList.Close();
-        }
-        return;
-    }
     const server = getServerByConnectionHandle(handle);
 
     if(!server) { return; }

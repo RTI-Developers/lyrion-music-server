@@ -2,10 +2,6 @@
 <#@ include file="Variables.t4" #>
 <?xml version='1.0' encoding='utf-8'?>
 <configuration>
-  <category advanced="false" description="" name="Serial">
-    <setting description="Enter serial number" name="Serial Number" type="string" variable="SerialNumber" />
-  </category>
-
   <category description="Total Players to control" hidden="false" name="Total Player Count">
     <setting default="1" description="Total Players" name="Total Players to Control" type="mcinteger" variable="Total_Players" countsourceid="Player">
 <#
@@ -78,8 +74,4 @@ for (var i = 1; i <= remoteCount; i++)
     <setting description="Print Incoming Menu Data" name="Print Incoming Menu Data" type="boolean" variable="DebugMenuIncoming" />
   </category>
 
-  <category description="Bonus Extra Items" hidden="true" name="Driver Extras">    
-    <setting description="Use Music Information Add-On" name="Use Music Information Add-On" type="boolean" variable="UseMusicInfoAddOn" />
-    <setting condition="$UseMusicInfoAddOn" default="2101" description="TCP Port Music Information is running on" name="TCP Port Music Information is running on" type="integer" variable="MusicInfoAddOnTCPPort" />
-  </category>
 </configuration>

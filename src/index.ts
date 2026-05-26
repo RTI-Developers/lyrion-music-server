@@ -1,42 +1,28 @@
-const g_DriverUniqueName = "GoFuckYourSelfS1Digital";
-const g_LogLevel = 0;
 const g_Remote_Ids: number[] = Config.Get("SYSTEM::TwoWayDeviceList").split(' ').map(rid => parseInt(rid, 10));
 const g_Max_Poll_Count = 25;
-const g_Total_Players = parseInt(Config.Get("Total_Players"), 10);
 const g_Customized_Remote_Count = parseInt(Config.Get("TotalRemotes"), 10);
 const g_Keyboard_Layer1 = new Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0');
 const g_Keyboard_Layer2 = new Array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0');
 const g_Keyboard_Layer3 = new Array();
 const g_RemotePlayers: RemotePlayer[] = [];
-const g_Check_Trial_Expired = new ScheduledEvent(timeTrialExpired, "Periodic", "Minutes", 1);
-const g_DriverName = "Squeezebox";
-const g_DriverVersion = "0.93";
+const g_DriverName = "Lyrion";
+const g_DriverVersion = "2.0";
 const g_Player_Count = parseInt(Config.Get("Total_Players"), 10);
 const g_Default_Server_Ip = Config.Get("Defaul_Server_IP");
 const g_Default_Server_Port = parseInt(Config.Get("Default_Server_TCP_Port"), 10);
 const g_Player_Names_SysVarList = new SystemVarsList<string>("ConfiguredPlayersList");
 const g_Max_Now_Playing_List_Size = 10;
-const g_Use_Extra_Music_Server_Info = Config.Get("UseMusicInfoAddOn") == "true";
-const g_Extra_Music_Tcp_Port = parseInt(Config.Get("MusicInfoAddOnTCPPort"), 10);
 const g_Socket_Connections = [];
 const g_remotes: Remote[] = [];
 const g_Players: Player[] = [];
 const g_Servers: Server[] = [];
 
 
-let g_Music_Info_Connection: TCP;
 let g_Debug = Config.Get("DebugTrace") == "true";
 let g_Print_Posts = Config.Get("DebugPrintPosts") == "true";
 let g_Print_Incoming_Json = Config.Get("DebugPrintIncoming") == "true";
 let g_Print_Incoming_Raw = Config.Get("DebugRAWIncoming") == "true";
 let g_Print_Incoming_Menu = Config.Get("DebugMenuIncoming") == "true";
-let g_Trial_Time_In_Minutes = 30;
-
-let g_Trial_Expired = false;
-let g_Valid_Serial_Number = false;
-
-SystemVars.Write("TrialTimeExpired", false);
-SystemVars.Write("ValidSerial", false);
 
 function Init(): void {
     dbg('Init');
@@ -125,10 +111,6 @@ function Init(): void {
     }
     g_Player_Names_SysVarList.Close();
 
-    if (g_Use_Extra_Music_Server_Info) {
-        dbg('Starting extra music connection');
-        startExtraMusicConnection();
-    }
 }
 
 function setKeyBoardKeys(remotePlayer: RemotePlayer): void {
@@ -267,7 +249,7 @@ function enterKeyBoardInputImpl(remotePlayer: RemotePlayer, key: number): void {
         remotePlayer.BrowseList.Close();
 
         remotePlayer.CurrentList.MenuTitle = SystemVars.Read("BrowseListTitleP" + padDigit(remotePlayer.Player.Id) + "%" + remotePlayer.Remote.Id);
-        this.ListLevel++;
+        remotePlayer.ListLevel++;
         sendJsonCommand(json, remotePlayer.Player.Server);
 
         remotePlayer.KeyboardData = "";
@@ -655,9 +637,7 @@ function parseSubMenu(json: string, server: Server): void {
                             //playallParams
                             actionItems.GoParams = getMenuDetails(actionItems.GoParams, item["playallParams"]);
 
-                            //WTF is up with all of these inconsistancies!!!  if this is a Artist, Album root selection, we need to remove some items so this will work correctly  FUCK ME!! 
-                            //Hack fix that will need to be readdressed
-                            //System.Print("********************************** ActionItems.GoParams=" + ActionItems.GoParams);
+                            // strip sort/track_id params that break artist/album root playallParams selections
                             var Params = actionItems.GoParams.split(',');
                             actionItems.GoParams = "";
                             for (var p = 0; p < Params.length; p++) {
@@ -1155,8 +1135,6 @@ function updatePlayerState(json: string, server: Server): void {
 
         //Now update the masters info
         updatePlayerVariables(player);
-        //Send additional info to Music informatoin driver if it is being used
-        writeDataToMusicInfoDriver(player);
 
         if (player.SyncedPlayers.length > 0) {
             //Update their vars to mirror the masters, then update all data for all remotes
@@ -1189,8 +1167,6 @@ function updatePlayerState(json: string, server: Server): void {
                 syncedPlayer.Playlist = player.Playlist;
 
                 updatePlayerVariables(syncedPlayer);
-                //Send additional info to Music informatoin driver if it is being used
-                writeDataToMusicInfoDriver(syncedPlayer);
             }
         }
     }
@@ -1393,17 +1369,7 @@ function setShowMoreOptionsPopupImpl(remotePlayer: RemotePlayer, mode: string) {
 }
 
 function getPlayerStatusImpl(remotePlayer: RemotePlayer): void {
-    // TODO: figure out json variable re-assignment
-
-    //From my list works
-    var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary","items",0,25,"menu:browselibrary","mode:bmf","item_id:0"]]}' + ',"channel":"/slim/request"}]';
-
-    //Play everything under item 0 (Flac)
-    var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary","playlist","play","menu:browselibrary","mode:bmf","item_id:0"]]}' + ',"channel":"/slim/request"}]';
-
-    //IPENG
-    var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary","items",0,25,"mode":"artists","menu":1]]}' + ',"channel":"/slim/request"}]';
-
+    const json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
     sendJsonCommand(json, remotePlayer.Player.Server);
 }
 
@@ -1463,8 +1429,6 @@ function playerVolumeImpl(remotePlayer: RemotePlayer, todo: string, volume: numb
 }
 
 function jumptoPlayPositionImpl(remotePlayer: RemotePlayer, location: number): void {
-    if (g_Trial_Expired == true) { return; }
-
     if (remotePlayer.Player.CanSeek == true) {
         var Position = Math.round((location / 100) * remotePlayer.Player.Duration);
         //Try to help with live feedback on the scrub bar so it doesn't move again after change(keeps it from jumping forward or backwards after the update)
@@ -1744,7 +1708,6 @@ function adjustPlaylistImpl(remotePlayer: RemotePlayer, todo: string): void {
             remotePlayer.NowPlayingList.Close();
             let updated = false;
 
-            System.Print("NewLocation=" + newLocation);
             const itemIdItemID = remotePlayer.Player.Playlist[newLocation].Id;
             remotePlayer.PlayListItemNewLocation = newLocation;
             for (let i = 0; i < remotePlayer.PlayListChangeCommands.length; i++) {
@@ -1795,6 +1758,7 @@ function jumpToBrowseLocationImpl(remotePlayer: RemotePlayer, service: string): 
     remotePlayer.ListLevel = 1;
 
     let isRpc = false;
+    let json = "";
     switch (service) {
         case "artists":
         case "albums":
@@ -1804,21 +1768,21 @@ function jumpToBrowseLocationImpl(remotePlayer: RemotePlayer, service: string): 
         case "mediafolder":
         case "musicfolder":
         case "bmf":
-            var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:' + service + '"]]}' + ',"channel":"/slim/request"}]';
+            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:' + service + '"]]}' + ',"channel":"/slim/request"}]';
             break;
         case "myMusic":
         case "home":
-            var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
+            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
             break;
         case "new":
-            var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:albums"]]}' + ',"channel":"/slim/request"}]';
+            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:albums"]]}' + ',"channel":"/slim/request"}]';
             isRpc = true;
             break;
         case "radios":
-            var json = '[{""id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["radios", 0,' + g_Max_Poll_Count + ', "menu:radio"]]}' + ',"channel":"/slim/request"}]';
+            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["radios", 0,' + g_Max_Poll_Count + ', "menu:radio"]]}' + ',"channel":"/slim/request"}]';
             break;
         default:
-            var json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["' + service + '","items",0,' + g_Max_Poll_Count + ',"menu:' + service + '"]]}' + ',"channel":"/slim/request"}]';
+            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["' + service + '","items",0,' + g_Max_Poll_Count + ',"menu:' + service + '"]]}' + ',"channel":"/slim/request"}]';
             break;
     }
 
@@ -1896,44 +1860,8 @@ function subscribeTestImpl(remotePlayer: RemotePlayer): void {
     sendJsonCommand(json, remotePlayer.Player.Server);
 }
 
-function startExtraMusicConnection() {
-    g_Music_Info_Connection = new TCP(onCommRxExtraMusicInfo, System.IPAddress, g_Extra_Music_Tcp_Port);
-    g_Music_Info_Connection.OnConnectFunc = onConnectionExtraMusicInfo;
-    g_Music_Info_Connection.OnDisconnectFunc = onDisconnectExtraMusicInfo;
-    g_Music_Info_Connection.UseHandleInCallbacks = false;
-    g_Music_Info_Connection.AddRxFraming("StopChar", '\r\n');
-}
-
-function writeDataToMusicInfoDriver(player: Player): void {
-    if (g_Use_Extra_Music_Server_Info) {
-        let title = player.Title;
-        if (title.length == 0) { title = " "; }
-
-        let album = player.Album;
-        if (album.length == 0) { album = " "; }
-
-        let artist = player.Artist;
-        if (artist.length == 0) { artist = " "; }
-
-        let nowPlayingCoverArt = player.NowPlayingCoverArt;
-        if (nowPlayingCoverArt.length == 0) nowPlayingCoverArt = " ";
-
-        const remoteIds = g_Remote_Ids.join(",");
-
-        g_Music_Info_Connection.Write("GETDATA Title^" + title +
-                                        "^^Artist^" + artist +
-                                        "^^Album^" + album +
-                                        "^^AlbumCoverURL^" + nowPlayingCoverArt +
-                                        "^^RemoteIDs^" + remoteIds +
-                                        "^^PlayerID^" + player.MacAddress +
-                                        "\r\n");
-    }
-}
-
 function sendJsonCommand(json: string, server: Server, isRpc: boolean = false): void {
     dbg('sendJsonCommand sending Command: ' + json + ' to Server: ' + server.Ip);
-    if (g_Trial_Expired == true) return;
-
     let command = "POST /cometd HTTP/1.1\r\n" +
                   "Content-Length: " + json.length + "\r\n" +
                   "Content-Type: application/json\r\n\r\n";
@@ -2080,5 +2008,4 @@ function updateConnectionState(server: Server): void {
 System.Print("Initializing " + g_DriverName + " version " + g_DriverVersion);
 
 printDebugModes();
-checkSerial();
 Init();

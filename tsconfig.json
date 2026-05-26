@@ -10,9 +10,9 @@
     "ignoreDeprecations": "5.0"
   },
   "files": [
+    "./src/json2.js",
     "./src/Utilities.ts",
     "./src/RtiFunctions.ts",
-    "./src/Licensing.ts",
     "./src/Eventhandlers.ts",
     "./src/Player.ts",
     "./src/Remote.ts",

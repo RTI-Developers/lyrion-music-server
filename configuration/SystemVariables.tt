@@ -132,17 +132,5 @@ for (var i = 1; i <= playerCount; i++)
     <variable name="Print Menu" sample="false" sysvar="PrintMenu" type="boolean" />
   </category>
 
-  <category name="Extra Music Information">
-    <variable name="Artist Fan Art" sysvar="ArtistFanArt%" type="image" />
-    <variable name="Artist Bio" sysvar="ArtistBio%" type="list" />
-    <variable name="Album Info" sysvar="AlbumInfo%" type="list" />
-    <variable name="Album Tracks" sysvar="AlbumTracks%" type="list" />
-  </category>
-  
-  <category name="Driver Trial Info">
-    <variable name="Trial Expires on" sysvar="TrialExpiresOn" type="string" />
-    <variable name="Trial Expires in" sysvar="TrialExpireMinutes" type="string" />
-    <variable name="Trial Expired" sysvar="TrialTimeExpired" type="boolean" />
-  </category>
 
 </variables>

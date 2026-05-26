@@ -22,9 +22,9 @@ function moveArrayItem(array: any[], from: number, to: number): any[] {
 
 function getJson(data: string): any {
     try {
-        return eval('(' + data + ')');
+        return JSON.parse(data);
     }
-    catch (Exception) {
+    catch (e) {
         return false;
     }
 }
@@ -116,7 +116,7 @@ function printDebugModes(): void {
 function dbg(message: string): void {
     if (g_Debug) {
         System.Print(g_DriverName + ":" + message);
-        if (g_LogLevel > 0) {
+        if (System.LogLevel > 0) {
             System.LogInfo(0, message);
         }
     }
