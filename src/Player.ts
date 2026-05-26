@@ -7,7 +7,6 @@ class Player {
     PoweredOn: boolean = false;
     SyncMaster: boolean = false;
     SyncSlave: boolean = false;
-    UseDefaultServer: boolean;
     UseCustomParentMenu: boolean;
     CustomMenuNames: string[] = [];
     CustomMenuNewNames: string[] = [];
@@ -71,7 +70,6 @@ class Player {
         this.ShouldHideMySqueezebox = (Config.Get("Favorites_Hide_MySqueeze_P" + paddedId) == "true");
         this.ShouldHideMySqueezebox = (Config.Get("SkipFirstPandoraMenuP" + paddedId) == "true");
         this.UseCustomParentMenu = (Config.Get("Use_Custom_Parent_Menu_P" + paddedId) == "true");
-        this.UseDefaultServer = (Config.Get("Use_Alt_Server_P" + paddedId) == "false");
 
         if (this.UseCustomParentMenu) {
             this.CustomMenuNames = Config.Get("Custom_Menu_Order_P" + paddedId).split(":");

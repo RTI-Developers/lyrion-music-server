@@ -68,7 +68,7 @@ function getItemIdValuePair(params: string): string {
             break;
         }
     }
-    return itemId
+    return itemId || "";
 }
 
 function printOutResults(data: string): void {
@@ -147,19 +147,6 @@ function formatDate(date: string): string {
 
     var newDate = date.replace(pattern, replacement);
     return newDate.substring(0, newDate.indexOf("GMT"));
-}
-
-function getServerByIpAndPort(ip: string, port: number): Server | null {
-    for (let i = 0; i < g_Servers.length; i++) {
-        const server = g_Servers[i];
-
-        if (server.Ip == ip && server.Port == port) {
-            return server;
-        }
-    }
-
-    dbg('getServerByIpAndPort failed to find Server with Ip:' + ip + ' and Port: ' + port);
-    return null;
 }
 
 

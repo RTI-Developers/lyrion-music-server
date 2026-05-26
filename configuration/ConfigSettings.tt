@@ -29,9 +29,6 @@ for (var i = 1; i <= playerCount; i++)
 #>
   <category condition="$Total_Players > <#= i - 1 #>" description="P<#= paddedIndex #> Info" hidden="false" name="P<#= paddedIndex #> Info" sourceid="Player<#= i #>">
     <setting default="P<#= paddedIndex #>" description="Player Name" name="P<#= paddedIndex #> Name" type="string" variable="NameP<#= paddedIndex #>" />
-    <setting default="false" description="Use Default Server" name="Use Alternative Server" type="boolean" variable="Use_Alt_Server_P<#= paddedIndex #>" />
-    <setting condition="$Use_Alt_Server_P<#= paddedIndex #>" default="192.168.2.115" description="IP address of server the player needs to connected to" name="TCP Address" type="string" variable="Server_IP_P<#= paddedIndex #>" />
-    <setting condition="$Use_Alt_Server_P<#= paddedIndex #>" default="9000" description="Squeezebox Server's TCP Control Port (Default is 9000)" name="Squeezebox TCP Port" type="integer" variable="Server_TCP_Port_P<#= paddedIndex #>" />
     <setting description="Custom Parent Menu Example" name="Use Custom Parent Menu" type="boolean" variable="Use_Custom_Parent_Menu_P<#= paddedIndex #>" />
     <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Order" type="string" variable="Custom_Menu_Order_P<#= paddedIndex #>" />
     <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Names" type="string" variable="Custom_Menu_Names_P<#= paddedIndex #>" />
