@@ -96,7 +96,16 @@ function parseIncomingJson(data: string, server: Server): void {
             else if (incomingJson["data"]["player_name"] != undefined) {
                 //There could be data here for more the one player, so recheck. This happens when players are synced
                 for (let i = 0; i < nowPlayingJson.length; i++) {
-                    updatePlayerState(nowPlayingJson[i], server);
+                    const statusData = nowPlayingJson[i];
+                    if (statusData["data"] == undefined) { continue; }
+                    let player: Player | null = null;
+                    for (let j = 0; j < server.Players.length; j++) {
+                        if (server.Players[j].Name == statusData["data"]["player_name"]) {
+                            player = server.Players[j];
+                            break;
+                        }
+                    }
+                    if (player) { player.applyStatusUpdate(statusData); }
                 }
             }
         }
@@ -136,9 +145,3 @@ function parseUndelimitedJson(existingData: string, server: Server): void {
     }
 }
 
-function updateConnectionState(server: Server): void {
-    for (let i = 0; i < server.Players.length; i++) {
-        server.Players[i].Connected = false;
-        updatePlayerVariables(server.Players[i]);
-    }
-}

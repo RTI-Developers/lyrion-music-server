@@ -16,6 +16,8 @@ const g_Socket_Connections = [];
 const g_remotes: Remote[] = [];
 const g_Players: Player[] = [];
 const g_Servers: Server[] = [];
+const g_serverHandlerMap = new GlobalHandlerMap<Server>();
+const g_playerHandlerMap = new GlobalHandlerMap<Player>();
 
 
 let g_Debug = Config.Get("DebugTrace") == "true";
@@ -51,17 +53,21 @@ function Init(): void {
 
     // Populate Server List
     dbg('Adding default server with Ip: ' + g_Default_Server_Ip + ' and Port: ' + g_Default_Server_Port);
-    g_Servers.push(new Server(g_Default_Server_Ip, g_Default_Server_Port));
+    const server = new Server(g_Default_Server_Ip, g_Default_Server_Port, onCommRx, onConnection, onDisconnect);
+    g_Servers.push(server);
+    g_serverHandlerMap.register(server.Connection.Handle, server);
+    g_serverHandlerMap.register(server.StartUpTimer.Handle, server);
 
     // Populate Player List
     for (let playerId = 1; playerId <= g_Player_Count; playerId++) {
-        const player = new Player(playerId);
+        const player = new Player(playerId, onTimerUpdatePlayerProgress);
         player.Name = Config.Get('NameP' + padDigit(playerId));
         player.Server = g_Servers[0];
 
         dbg('Adding Player [' + playerId + ']');
         g_Players.push(player);
         player.Server.Players.push(player);
+        g_playerHandlerMap.register(player.NowPlayingTimer.Handle, player);
     }
 
     // Populate RemotePlayer List
@@ -90,3 +96,35 @@ System.Print("Initializing " + g_DriverName + " version " + g_DriverVersion);
 
 printDebugModes();
 Init();
+
+//#region RTI event handlers
+
+function onCommRx(data: string, handle: number): void {
+    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleIncomingData(data);
+}
+
+function onConnection(handle: number): void {
+    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleConnection();
+}
+
+function onConnectionFailed(handle: number): void {
+    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleDisconnect();
+}
+
+function onDisconnect(handle: number): void {
+    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleDisconnect();
+}
+
+function onTimerGetPlayers(handle: number): void {
+    g_serverHandlerMap.getMappedValueFromHandle(handle)?.requestPlayerList();
+}
+
+function onTimerSubscribeToPlayerStatus(handle: number): void {
+    g_playerHandlerMap.getMappedValueFromHandle(handle)?.subscribeToStatus();
+}
+
+function onTimerUpdatePlayerProgress(handle: number): void {
+    g_playerHandlerMap.getMappedValueFromHandle(handle)?.tickProgress();
+}
+
+//#endregion

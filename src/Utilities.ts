@@ -150,21 +150,6 @@ function formatDate(date: string): string {
 }
 
 
-function getServerByConnectionHandle(handle: number): Server | null {
-    if (g_Servers.length == 1) { return g_Servers[0]; }
-    
-    //We are using more then one server, so find the Server
-    for (let i = 0; i < g_Servers.length; i++) {
-        const server = g_Servers[i];
-
-        if (server.Connection.Handle == handle || server.StartUpTimer.Handle == handle) {
-            return server;
-        }
-    }
-
-    dbg('getServerByConnectionHandle failed to find Server for handle:' + handle);
-    return null;
-}
 
 function getEmptyBrowseListItem(): BrowseListItem {
     return {
@@ -231,16 +216,6 @@ function getEmptyPlaylistItem(): PlaylistItem {
     }
 }
 
-function getPlayerByTimerHandle(handle: number): Player | null {
-    for (var i = 0; i < g_Players.length; i++) {
-        const player = g_Players[i];
-        if (player.NowPlayingTimer.Handle == handle) {
-            return player;
-        }
-    }
-
-    return null;
-}
 
 function getRemotePlayer(remoteId: number, playerId: number): RemotePlayer | null {
     for (let i = 0; i < g_RemotePlayers.length; i++) {
