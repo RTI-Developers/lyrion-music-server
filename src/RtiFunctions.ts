@@ -125,7 +125,13 @@ function setShowMoreOptionsPopup(playerId: number, mode: string, remoteId: numbe
 function getPlayerStatus(playerId: number, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    const json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
+    const json = buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        remotePlayer.Player.Server.ClientId,
+        g_Slim_Request,
+        remotePlayer.Player.MacAddress,
+        [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "direct:1"]);
     remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
@@ -152,8 +158,14 @@ function playerPower(playerId: number, power: number, remoteId: number): void {
     if (power == 3) {
         power = remotePlayer.Player.PoweredOn ? 0 : 1;
     }
-    var JSON = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["power",' + power + ']]}' + ',"channel":"/slim/request"}]';
-    remotePlayer.Player.Server.sendJsonCommand(JSON);
+    const json = buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        remotePlayer.Player.Server.ClientId,
+        g_Slim_Request,
+        remotePlayer.Player.MacAddress,
+        [LyrionCmd.Power, power]);
+    remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
 function playerVolume(playerId: number, todo: string, volume: number, remoteId: number): void {
@@ -171,16 +183,39 @@ function playerVolume(playerId: number, todo: string, volume: number, remoteId: 
         volume = remotePlayer.Player.Volume;
     }
 
-    let json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["mixer","volume",' + volume + ']]}' + ',"channel":"/slim/request"}]';
+    const clientId = remotePlayer.Player.Server.ClientId;
+    const mac = remotePlayer.Player.MacAddress;
+    let json: string;
 
     if (todo.indexOf("muting") > -1) {
         if (todo.indexOf(" ") > -1) {
-            const muteOff = parseInt(todo.substring(todo.indexOf(" ")), 10).toString();
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["mixer","muting",' + muteOff + ']]}' + ',"channel":"/slim/request"}]';
+            const muteOff = parseInt(todo.substring(todo.indexOf(" ")), 10);
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.Mixer, LyrionMixerCmd.Muting, muteOff]);
         }
         else {
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["mixer","muting"' + ']]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.Mixer, LyrionMixerCmd.Muting]);
         }
+    }
+    else {
+        json = buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            clientId,
+            g_Slim_Request,
+            mac,
+            [LyrionCmd.Mixer, LyrionMixerCmd.Volume, volume]);
     }
     remotePlayer.Player.Server.sendJsonCommand(json);
 }
@@ -194,7 +229,13 @@ function jumptoPlayPosition(playerId: number, location: number, remoteId: number
         remotePlayer.Player.Progress = Position;
         remotePlayer.Player.Remaining = remotePlayer.Player.Duration - remotePlayer.Player.Progress;
         remotePlayer.Player.ProgressBar = (Math.floor((Position / remotePlayer.Player.Duration) * 100));
-        const json = '[{ "id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '", "data": { "request": ["' + remotePlayer.Player.MacAddress + '", ["time", ' + Position + ']], "response": "/' + remotePlayer.Player.Server.ClientId + '/slim/request" }' + ', "channel": "/slim/request" }]';
+        const json = buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            remotePlayer.Player.Server.ClientId,
+            g_Slim_Request,
+            remotePlayer.Player.MacAddress,
+            [LyrionCmd.Time, Position]);
         remotePlayer.Player.Server.sendJsonCommand(json);
     }
 }
@@ -202,39 +243,59 @@ function jumptoPlayPosition(playerId: number, location: number, remoteId: number
 function transport(playerId: number, command: string, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    const startJson = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["';
-    let action = "";
+    const clientId = remotePlayer.Player.Server.ClientId;
+    const mac = remotePlayer.Player.MacAddress;
+    let cmd: LyrionCommandArray;
     switch (command) {
         case "play":
+            cmd = [LyrionCmd.Play];
+            break;
         case "pause":
+            cmd = [LyrionCmd.Pause];
+            break;
         case "stop":
-            action = command;
+            cmd = [LyrionCmd.Stop];
             break;
         case "next":
-            action = 'button", "jump_fwd';
+            cmd = [LyrionCmd.Button, LyrionButtonCmd.JumpForward];
             break;
         case "previous":
-            action = 'button", "jump_rew';
+            cmd = [LyrionCmd.Button, LyrionButtonCmd.JumpRewind];
             break;
         case "pandora_love":
-            action = 'pandora","rate","1';
+            cmd = [LyrionCmd.Pandora, "rate", "1"];
             break;
         case "pandora_ban":
-            action = 'pandora","rate","0';
+            cmd = [LyrionCmd.Pandora, "rate", "0"];
             break;
         case "shuffle":
-        case "repeat":
-            action = 'button", "' + command;
+            cmd = [LyrionCmd.Button, LyrionButtonCmd.Shuffle];
             break;
+        case "repeat":
+            cmd = [LyrionCmd.Button, LyrionButtonCmd.Repeat];
+            break;
+        default:
+            return;
     }
-    const endJson = '"]]}' + ',"channel":"/slim/request"}]';
-    remotePlayer.Player.Server.sendJsonCommand(startJson + action + endJson);
+    remotePlayer.Player.Server.sendJsonCommand(buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        clientId,
+        g_Slim_Request,
+        mac,
+        cmd));
 }
 
 function browseSubMenuTest(playerId: number, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    const json = '[{"id":"' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["opml_generic","items",0,100,"menu:opml_generic","item_id:f8c2a3df.0","useContextMenu:1"]]}' + ',"channel":"/slim/request"}]';
+    const json = buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        remotePlayer.Player.Server.ClientId,
+        g_Slim_Request,
+        remotePlayer.Player.MacAddress,
+        [LyrionCmd.OpmlGeneric, "items", 0, 100, "menu:opml_generic", "item_id:f8c2a3df.0", "useContextMenu:1"]);
     remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
@@ -279,11 +340,21 @@ function syncListSelection(playerId: number, index: number, syncType: string, re
             break;
     }
 
-    let json = isAdd ?
-        '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + masterPlayer.Server.ClientId + '/slim/request","request":["' + masterPlayer.MacAddress + '",["sync","' + slavePlayer.MacAddress + '"]]}' + ',"channel":"/slim/request"}]' :
-        '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + masterPlayer.Server.ClientId + '/slim/request","request":["' + slavePlayer.MacAddress + '",["sync","' + '-' + '"]]}' + ',"channel":"/slim/request"}]';
-
-    json = json.replace(/\//g, "\\/");
+    const json = isAdd
+        ? buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            masterPlayer.Server.ClientId,
+            g_Slim_Request,
+            masterPlayer.MacAddress,
+            [LyrionCmd.Sync, slavePlayer.MacAddress])
+        : buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            masterPlayer.Server.ClientId,
+            g_Slim_Request,
+            slavePlayer.MacAddress,
+            [LyrionCmd.Sync, "-"]);
     masterPlayer.Server.sendJsonCommand(json);
 }
 
@@ -293,16 +364,16 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
     if (remotePlayer == null) { return; }
     const paddedPlayerId = padDigit(remotePlayer.Player.Id);
     const command = remotePlayer.CurrentList.ListItems[index].Actions[0].GoCmd;
-    const params = remotePlayer.CurrentList.ListItems[index].Actions[0].GoParams;
+    const goParams = remotePlayer.CurrentList.ListItems[index].Actions[0].GoParams;
     remotePlayer.CurrentList.Top = index;
 
-    if (command.indexOf("jiveblankcommand") > -1) {
+    if (command.some(function(c) { return c.indexOf("jiveblankcommand") > -1; })) {
         remotePlayer.applyBrowseMode(0);
         remotePlayer.ListBack();
         return;
     }
 
-    if (params.indexOf("__TAGGEDINPUT__") > -1) {
+    if (goParams.some(function(p) { return p.indexOf("__TAGGEDINPUT__") > -1; })) {
         remotePlayer.CurrentList.Selected = index;
         SystemVars.Write("ShowingKeyboardP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
         if (remotePlayer.KeyboardPageMacro > 0) {
@@ -319,24 +390,45 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
             remotePlayer.Player.NowPlayingUrl = remotePlayer.CurrentList.ListItems[index].FavoritesUrl;
         }
 
-        let json = "";
-        let commands = "";
-        let params = "";
+        const clientId = remotePlayer.Player.Server.ClientId;
+        const mac = remotePlayer.Player.MacAddress;
+        let commands: string[] = [];
+        let params: string[] = [];
+
         if (mode == "Favorite") {
+            const itemId = getItemIdValue(remotePlayer.CurrentList.ListItems[index].Actions[0].Params);
+            let json: string;
             if (SystemVars.Read("BrowseListTitleP" + paddedPlayerId + "%" + remotePlayer.Remote.Id).toLowerCase() == "favorites") {
-                const itemId = getItemIdValue(remotePlayer.CurrentList.ListItems[index].Actions[0].Params);
-                json = '[{"id": "' + paddedPlayerId + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["favorites","delete","title:' + remotePlayer.CurrentList.ListItems[index].FavoritesTitle + '","url:' + remotePlayer.CurrentList.ListItems[index].FavoritesUrl + '",' + itemId + ',"useContextMenu:1","type:audio"' + ']]}' + ',"channel":"/slim/request"}]';
+                json = buildSlimRequestJson(
+                    remotePlayer.Player.Id,
+                    remotePlayer.Remote.Id,
+                    clientId,
+                    g_Slim_Request,
+                    mac,
+                    [
+                        LyrionCmd.Favorites, LyrionFavoritesCmd.Delete,
+                        "title:" + remotePlayer.CurrentList.ListItems[index].FavoritesTitle,
+                        "url:" + remotePlayer.CurrentList.ListItems[index].FavoritesUrl,
+                        itemId, "useContextMenu:1", "type:audio"
+                    ]);
                 remotePlayer.BrowseList.Open();
                 remotePlayer.BrowseList.RemoveAt(index);
                 remotePlayer.BrowseList.Close();
                 remotePlayer.applyBrowseMode(0);
             }
             else {
-                json = '[{"id": "' + paddedPlayerId + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["favorites","add","title:' + remotePlayer.CurrentList.ListItems[index].FavoritesTitle + '","url:' + remotePlayer.CurrentList.ListItems[index].FavoritesUrl + '"]]}' + ',"channel":"/slim/request"}]';
-
+                json = buildSlimRequestJson(
+                    remotePlayer.Player.Id,
+                    remotePlayer.Remote.Id,
+                    clientId,
+                    g_Slim_Request,
+                    mac,
+                    [
+                        LyrionCmd.Favorites, LyrionFavoritesCmd.Add,
+                        "title:" + remotePlayer.CurrentList.ListItems[index].FavoritesTitle,
+                        "url:" + remotePlayer.CurrentList.ListItems[index].FavoritesUrl
+                    ]);
             }
-
-            json = json.replace(/\//g, "\\/");
             remotePlayer.Player.Server.sendJsonCommand(json);
             return;
         }
@@ -347,9 +439,9 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
             }
             else {
                 commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].PlayCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].PlayParams;
+                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].PlayParams.slice();
                 if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
+                    params = params.concat(remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams);
                 }
             }
         }
@@ -360,9 +452,9 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
             }
             else {
                 commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddParams;
+                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddParams.slice();
                 if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
+                    params = params.concat(remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams);
                 }
             }
         }
@@ -373,15 +465,19 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
             }
             else {
                 commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddHoldCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddHoldParams;
-
+                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddHoldParams.slice();
                 if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
+                    params = params.concat(remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams);
                 }
             }
         }
-        json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",[' + commands + ',' + params + ']]}' + ',"channel":"/slim/request"}]';
-        json = json.replace(/\//g, "\\/");
+        const json = buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            clientId,
+            g_Slim_Request,
+            mac,
+            (commands as LyrionCommandArray).concat(params as LyrionCommandArray));
         remotePlayer.Player.Server.sendJsonCommand(json);
     }
     else {
@@ -420,7 +516,13 @@ function playListSelection(playerId: number, index: number, remoteId: number): v
     }
     else {
         remotePlayer.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + remotePlayer.Player.Playlist[lastItem].Title);
-        const json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["playlist","index",' + index + ']]}' + ',"channel":"/slim/request"}]';
+        const json = buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            remotePlayer.Player.Server.ClientId,
+            g_Slim_Request,
+            remotePlayer.Player.MacAddress,
+            [LyrionCmd.Playlist, LyrionPlaylistCmd.Index, index]);
         remotePlayer.Player.Server.sendJsonCommand(json);
     }
     remotePlayer.NowPlayingList.Close();
@@ -516,6 +618,8 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
     remotePlayer.CurrentList.ListItems = remotePlayer.Player.ParentMenu.ListItems;
     remotePlayer.ListLevel = 1;
 
+    const clientId = remotePlayer.Player.Server.ClientId;
+    const mac = remotePlayer.Player.MacAddress;
     let isRpc = false;
     let json = "";
     switch (service) {
@@ -527,21 +631,51 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
         case "mediafolder":
         case "musicfolder":
         case "bmf":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:' + service + '"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Poll_Count, "sort:new", "mode:" + service]);
             break;
         case "myMusic":
         case "home":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "direct:1"]);
             break;
         case "new":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:albums"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Poll_Count, "sort:new", "mode:albums"]);
             isRpc = true;
             break;
         case "radios":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["radios", 0,' + g_Max_Poll_Count + ', "menu:radio"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.Radios, 0, g_Max_Poll_Count, "menu:radio"]);
             break;
         default:
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["' + service + '","items",0,' + g_Max_Poll_Count + ',"menu:' + service + '"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [service, "items", 0, g_Max_Poll_Count, "menu:" + service]);
             break;
     }
 
@@ -577,7 +711,7 @@ function playDirectUrl(playerId: number, url: string, remoteId: number): void {
 function playRandomPlaylist(playerId: number, folder: string, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    const json = `{"id": "play_random_favorite::${remotePlayer.Player.MacAddress}::${folder}", "method": "slim.request", "params": ["", ["favorites", "items", 0, 100]] }`;
+    const json = buildRpcRequestJson("play_random_favorite::" + remotePlayer.Player.MacAddress + "::" + folder, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100]);
     remotePlayer.Player.Server.sendJsonCommand(json, true);
 }
 
@@ -585,6 +719,9 @@ function browseTest(playerId: number, service: string, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
 
+    const clientId = remotePlayer.Player.Server.ClientId;
+    const mac = remotePlayer.Player.MacAddress;
+    const rpcId = buildRequestId(remotePlayer.Player.Id, remotePlayer.Remote.Id);
     let isRpc = false;
     let json = "";
     switch (service) {
@@ -596,23 +733,35 @@ function browseTest(playerId: number, service: string, remoteId: number): void {
         case "mediafolder":
         case "musicfolder":
         case "bmf":
-            json = '{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","method":"slim.request","params":[ "", ["browselibrary","items",0,65000,"mode:' + service + '"]]}';
+            json = buildRpcRequestJson(rpcId, "", [LyrionCmd.BrowseLibrary, "items", 0, 65000, "mode:" + service]);
             break;
         case "myMusic":
         case "home":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,100,"direct:1"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.Menu, "items", 0, 100, "direct:1"]);
             break;
         case "new":
-            json = '{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","method":"slim.request","params":["' + remotePlayer.Player.Server.ClientId + '",["browselibrary", "items", 0, 65000, "sort:new","mode:albums"]]}';
+            json = buildRpcRequestJson(rpcId, clientId, [LyrionCmd.BrowseLibrary, "items", 0, 65000, "sort:new", "mode:albums"]);
             isRpc = true;
             break;
         case "radios":
-            json = '{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","method":"slim.request","params":["' + remotePlayer.Player.Server.ClientId + '",["radios", 0, 65000, "menu:radio"]]}';
+            json = buildRpcRequestJson(rpcId, clientId, [LyrionCmd.Radios, 0, 65000, "menu:radio"]);
             break;
         case "menu":
             break;
         default:
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["opml_generic","items",0,100,"userInterfaceIdiom:iPeng","menu:opml_generic","opml_url:http://www.mysqueezebox.com/api/shoutcast/v1/opml","useContextMenu:1"]]}' + ',"channel":"/slim/request"}]';
+            json = buildSlimRequestJson(
+                remotePlayer.Player.Id,
+                remotePlayer.Remote.Id,
+                clientId,
+                g_Slim_Request,
+                mac,
+                [LyrionCmd.OpmlGeneric, "items", 0, 100, "userInterfaceIdiom:iPeng", "menu:opml_generic", "opml_url:http://www.mysqueezebox.com/api/shoutcast/v1/opml", "useContextMenu:1"]);
             break;
     }
 
@@ -623,7 +772,7 @@ function browseTest(playerId: number, service: string, remoteId: number): void {
 function subscribeTest(playerId: number, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    const json = '[{ "id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data": { "response": "/' + remotePlayer.Player.Server.ClientId + '/slim/serverstatus", "request": ["", ["serverstatus", 0, 255, "prefs:ignoredarticles,browseagelimit,noGenreFilter,PLUGIN_TRACKSTAT,audiodir", "playerprefs:playtrackalbum,digitalVolumeControl", "subscribe:60"]] }' + ', "channel": "/slim/subscribe" }]';
+    const json = buildSlimSubscribeJson(remotePlayer.Player.Id, remotePlayer.Remote.Id, remotePlayer.Player.Server.ClientId, "slim/serverstatus", "", [LyrionCmd.ServerStatus, 0, 255, "prefs:ignoredarticles,browseagelimit,noGenreFilter,PLUGIN_TRACKSTAT,audiodir", "playerprefs:playtrackalbum,digitalVolumeControl", "subscribe:60"]);
     remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
@@ -716,11 +865,21 @@ function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo:
             break;
     }
 
-    let json = isAdd ?
-        '[{"id": "' + slavePlayer.Id + "_" + remoteId + '","data":{"response":"/' + masterPlayer.Server.ClientId + '/slim/request","request":["' + masterPlayer.MacAddress + '",["sync","' + slavePlayer.MacAddress + '"]]}' + ',"channel":"/slim/request"}]' :
-        '[{"id": "' + slavePlayer.Id + "_" + remoteId + '","data":{"response":"/' + masterPlayer.Server.ClientId + '/slim/request","request":["' + slavePlayer.MacAddress + '",["sync","' + '-' + '"]]}' + ',"channel":"/slim/request"}]';
-
-    json = json.replace(/\//g, "\\/");
+    const json = isAdd
+        ? buildSlimRequestJson(
+            slavePlayer.Id,
+            remoteId,
+            masterPlayer.Server.ClientId,
+            g_Slim_Request,
+            masterPlayer.MacAddress,
+            [LyrionCmd.Sync, slavePlayer.MacAddress])
+        : buildSlimRequestJson(
+            slavePlayer.Id,
+            remoteId,
+            masterPlayer.Server.ClientId,
+            g_Slim_Request,
+            slavePlayer.MacAddress,
+            [LyrionCmd.Sync, "-"]);
     masterPlayer.Server.sendJsonCommand(json);
 }
 
@@ -751,7 +910,12 @@ function browseSelection(playerId: number, index: number, remoteId: number): voi
 }
 
 function playDirectUrlForPlayer(remotePlayer: RemotePlayer, url: string): void {
-    let json = ('[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["playlist","play","' + url + '"]]}' + ',"channel":"/slim/request"}]');
-    json = json.replace(/\//g, "\\/");
+    const json = buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        remotePlayer.Player.Server.ClientId,
+        g_Slim_Request,
+        remotePlayer.Player.MacAddress,
+        [LyrionCmd.Playlist, LyrionPlaylistCmd.Play, url]);
     remotePlayer.Player.Server.sendJsonCommand(json);
 }

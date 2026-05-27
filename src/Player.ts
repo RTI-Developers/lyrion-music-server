@@ -1,5 +1,7 @@
 class Player {
-	Id: number;
+    private readonly _onProgressTick: (handle: number) => void;
+
+    Id: number;
 	Name: string;
     MacAddress: string;
     ParentMenu: BrowseListItem;
@@ -15,8 +17,6 @@ class Player {
     Server: Server;
     CustomParentMenu: BrowseListItem;
 
-    private readonly _onProgressTick: (handle: number) => void;
-    
     Mode: string = "";
     Progress: number = 0;
     ProgressBar: number = 0;
@@ -49,7 +49,6 @@ class Player {
     IsPlayingPandora: boolean = false;
     HasPandoraThumbsUp: boolean = false;
 
-    //Used at driver start up or when the driver reconnects to the server that hosts this player
     NowPlayingTimer: Timer;
     Playlist: PlaylistItem[] = [];
     PlaylistCurrentIndex: number = 0;
@@ -88,7 +87,7 @@ class Player {
 
         this.UpdateAssociatedVariables();
     }
-    
+
     UpdateAssociatedVariables(): void {
         const paddedId = padDigit(this.Id);
         SystemVars.Write("NameP" + paddedId, this.Name);
@@ -100,96 +99,40 @@ class Player {
         SystemVars.Write("SyncSlaveP" + paddedId, this.SyncSlave);
     }
 
-    applyStatusUpdate(statusData: any): void {
-        let updateVars = false;
+    applyStatusUpdate(info: LyrionStatusData): void {
         const paddedPlayerId = padDigit(this.Id);
-        const info = statusData["data"];
-        const playerConnected = info["player_connected"] == "1";
+        let updateVars = false;
 
-        if (this.Mode != info["mode"] || this.Connected != playerConnected) {
-            updateVars = true;
-        }
+        const playerConnected = info.player_connected == "1";
+        if (this.Connected != playerConnected) { updateVars = true; }
+        this.Connected = playerConnected;
 
-        var syncedPlayers = this.SyncedPlayers.length;
-        if (statusData["data"]["sync_master"] != undefined) {
-            this.SyncedPlayers = [];
+        if (this.updateSyncState(info)) { updateVars = true; }
 
-            let masterPlayer: Player | undefined = undefined;
-            for (let i = 0; i < this.Server.Players.length; i++) {
-                if (this.Server.Players[i].MacAddress == statusData["data"]["sync_master"]) {
-                    masterPlayer = this.Server.Players[i];
-                    break;
-                }
-            }
-
-            if (masterPlayer) {
-                this.SyncedPlayers.push(masterPlayer);
-            }
-
-            if (statusData["data"]["sync_master"] == this.MacAddress) {
-                this.IsSynced = true;
-                this.IsSyncMaster = true;
-                this.IsSyncSlave = false;
-            }
-            else {
-                this.IsSyncMaster = false;
-            }
-
-            if (statusData["data"]["sync_slaves"] != undefined) {
-                const syncList = statusData["data"]["sync_slaves"].split(",");
-                for (let i = 0; i < syncList.length; i++) {
-                    let slavePlayer: Player | undefined = undefined;
-                    for (let j = 0; j < this.Server.Players.length; j++) {
-                        if (this.Server.Players[j].MacAddress == syncList[i]) {
-                            slavePlayer = this.Server.Players[j];
-                            break;
-                        }
-                    }
-
-                    if (slavePlayer) {
-                        this.SyncedPlayers.push(slavePlayer);
-                        slavePlayer.IsSynced = true;
-                        slavePlayer.IsSyncMaster = false;
-                        slavePlayer.IsSyncSlave = true;
-                    }
-                }
-            }
-        }
-        else {
-            this.IsSynced = false;
-            this.IsSyncMaster = false;
-            this.IsSyncSlave = false;
-            this.SyncedPlayers = [];
-        }
-
-        if (syncedPlayers != this.SyncedPlayers.length) {
-            updateVars = true;
-        }
-
-        var volume = parseInt(info["mixer volume"], 10);
-        if (volume != this.Volume) {
-            updateVars = true;
-        }
+        const volume = parseInt(info["mixer volume"], 10);
+        if (volume != this.Volume) { updateVars = true; }
         this.Volume = volume;
         this.Muted = (volume < 1);
 
-        this.StationName = (info["current_title"] != undefined) ? info["current_title"] : "";
+        this.StationName = info.current_title ?? "";
 
-        if (info["mode"] != this.Mode) {
-            switch (info["mode"]) {
-                case "play":
-                    System.SignalEvent("PlayingP" + paddedPlayerId);
-                    break;
-                case "pause":
-                    System.SignalEvent("PausedP" + paddedPlayerId);
-                    break;
-                case "stop":
-                    System.SignalEvent("StoppedP" + paddedPlayerId);
-                    break;
+        if (info.mode != this.Mode) {
+            updateVars = true;
+            switch (info.mode) {
+                case "play":  System.SignalEvent("PlayingP" + paddedPlayerId); break;
+                case "pause": System.SignalEvent("PausedP" + paddedPlayerId);  break;
+                case "stop":  System.SignalEvent("StoppedP" + paddedPlayerId); break;
             }
         }
 
-        this.Connected = playerConnected;
+        if (info.mode == "play") {
+            if (this.NowPlayingTimer.State == 0) {
+                this.NowPlayingTimer.Start(this._onProgressTick, 1000);
+            }
+        } else {
+            this.NowPlayingTimer.Stop();
+        }
+        this.Mode = info.mode;
 
         if (this.IsSyncSlave) {
             if (updateVars) {
@@ -198,42 +141,28 @@ class Player {
             return;
         }
 
-        this.Mode = info["mode"];
-
-        if (info["mode"] != "play") {
-            this.NowPlayingTimer.Stop();
-        }
-        else {
-            this.NowPlayingTimer.Stop();
-            this.NowPlayingTimer.Start(this._onProgressTick, 1000);
-        }
-
-        this.Progress = parseInt(info["time"], 10);
-
-        if (info["duration"] != undefined) {
-            this.Duration = parseInt(info["duration"], 10);
+        this.Progress = Math.floor(info.time ?? 0);
+        if (info.duration != undefined) {
+            this.Duration = Math.floor(info.duration);
             this.Remaining = this.Duration - this.Progress;
-        }
-        else {
+        } else {
             this.Duration = 0;
             this.Remaining = 0;
         }
-
-        this.CanSeek = (info["can_seek"] != undefined && this.Duration > 0)
-            ? (info["can_seek"] == "1")
+        this.CanSeek = (info.can_seek != undefined && this.Duration > 0)
+            ? (info.can_seek == "1")
             : false;
 
         this.PlaylistLastCurrentIndex = this.PlaylistCurrentIndex;
-        this.PlaylistCurrentIndex = parseInt(info["playlist_cur_index"], 10);
+        this.PlaylistCurrentIndex = parseInt(info.playlist_cur_index, 10);
 
-        const shuffleType = parseInt(info["playlist shuffle"], 10);
-        const repeatType = parseInt(info["playlist repeat"], 10);
-        const poweredOn = (info["power"] == "1");
+        const shuffleType = info["playlist shuffle"];
+        const repeatType = info["playlist repeat"];
+        const poweredOn = (info.power == "1");
 
         if (poweredOn != this.PoweredOn) {
             System.SignalEvent(poweredOn ? "PONP" + paddedPlayerId : "POFFP" + paddedPlayerId);
         }
-
         if (this.ShuffleType != shuffleType || this.RepeatType != repeatType || this.PoweredOn != poweredOn) {
             updateVars = true;
         }
@@ -243,144 +172,65 @@ class Player {
         this.ShuffleType = shuffleType;
         this.Shuffle = (this.ShuffleType > 0);
         this.PoweredOn = poweredOn;
-        this.PlaylistCount = parseInt(info["playlist_tracks"], 10);
+        this.PlaylistCount = info.playlist_tracks;
 
-        if (info["playlist_timestamp"] != this.PlaylistTimestamp) {
+        if (info.playlist_timestamp != this.PlaylistTimestamp) {
             this.Playlist = [];
             this.PlaylistReset = true;
             this.PlaylistLastCurrentIndex = 0;
-        }
-        else {
+        } else {
             this.PlaylistReset = false;
         }
-        this.PlaylistTimestamp = info["playlist_timestamp"];
+        this.PlaylistTimestamp = info.playlist_timestamp;
 
-        if (info["playlist_loop"] != undefined && this.IsSyncSlave == false) {
-            const lastPlaylistItemIndex = parseInt(info["playlist_loop"][info["playlist_loop"].length - 1]["playlist index"], 10) + 1;
+        if (info.playlist_loop != undefined) {
+            const lastIndex = parseInt(info.playlist_loop[info.playlist_loop.length - 1]["playlist index"], 10) + 1;
             if (this.Playlist.length <= this.PlaylistCount) {
-                for (let i = 0; i < info["playlist_loop"].length; i++) {
-                    const playListItem = getEmptyPlaylistItem();
+                for (let i = 0; i < info.playlist_loop.length; i++) {
                     try {
-                        const playerInfo = info["playlist_loop"][i];
-
-                        playListItem.Id = playerInfo["id"];
-                        playListItem.Url = info["playlist_loop"][i].url;
-                        playListItem.Duration = info["playlist_loop"][i].duration;
-
-                        playListItem.Title = System.ConvertFromUTF8(info["playlist_loop"][i]["title"]);
-                        var crapTitle = playListItem.Title.indexOf('text=');
-                        if (crapTitle > -1) {
-                            playListItem.Title = playListItem.Title.substring(crapTitle + 6);
-                            playListItem.Title = playListItem.Title.substring(0, playerInfo["title"].indexOf('"'));
-                        }
-
-                        if (playerInfo["album"] != undefined) {
-                            if (playerInfo["album"] != playerInfo["title"]) {
-                                playListItem.Album = System.ConvertFromUTF8(playerInfo["album"]);
-                            }
-                        }
-                        else if (playerInfo["remote_title"] != undefined) {
-                            if (playerInfo["remote_title"] != playerInfo["title"]) {
-                                playListItem.Album = System.ConvertFromUTF8(info["playlist_loop"][i]["remote_title"]);
-                            }
-                        }
-
-                        if (playerInfo["artist"] != undefined) {
-                            playListItem.Artist = System.ConvertFromUTF8(playerInfo["artist"]);
-                        }
-                        else if (playerInfo["albumartist"] != undefined) {
-                            playListItem.Artist = System.ConvertFromUTF8(playerInfo["albumartist"]);
-                        }
-
-                        var artUrl = "";
-                        if (playerInfo["artwork_url"] != undefined) {
-                            artUrl = playerInfo["artwork_url"].toString();
-                            if (artUrl.substring(0, 4) != "http") {
-                                artUrl = "http://" + this.Server.Ip + ":" + this.Server.Port + "/" + artUrl.replace(/^\//, '');
-                            }
-                        }
-                        else if (playerInfo["artwork_track_id"] != undefined) {
-                            artUrl = "http://" + this.Server.Ip + ":" + this.Server.Port + "/music/" + playerInfo["artwork_track_id"] + "/cover.jpg";
-                        }
-                        playListItem.ArtUrl = artUrl;
-
-                        playListItem.Remote = info["playlist_loop"][i]["remote"];
-                        playListItem.Type = (playerInfo["type"] != undefined) ? playerInfo["type"] : "";
-                        playListItem.BitRate = (playerInfo["bitrate"] != undefined) ? playerInfo["bitrate"] : "";
-                        playListItem.Genre = (playerInfo["genre"] != undefined) ? playerInfo["genre"] : "";
-
-                        this.Playlist.push(playListItem);
-                    }
-                    catch (err) {
+                        this.Playlist.push(this.buildPlaylistItem(info.playlist_loop[i]));
+                    } catch (err) {
                         System.Print("%%%%%%%%%%%%%%%%%% Playlist Error %%%%%%%%%%%%%%%%%%%%%%%%%%%");
                         System.Print("err with play list count error was " + err);
                         this.PlaylistCount--;
                     }
                 }
-
                 if (this.Playlist.length < this.PlaylistCount) {
-                    var paginationJson = '[{"id": "' + statusData["id"] + '","data":{"response":"\/' + this.Server.ClientId + '\/slim\/request","request":["' + this.MacAddress + '",["status",' + lastPlaylistItemIndex + ',25,"tags:uBjJKlaxdecNoptyw"]]}' + ',"channel":"\/slim\/request"}]';
+                    const paginationJson = buildSlimRequestJson(
+                        this.Id,
+                        undefined,
+                        this.Server.ClientId,
+                        g_Slim_Request,
+                        this.MacAddress,
+                        [LyrionCmd.Status, lastIndex, 25, g_Status_Tags]);
                     this.Server.sendJsonCommand(paginationJson);
                 }
             }
         }
 
-        let nowPlayingInfo = this.Playlist[this.PlaylistCurrentIndex];
+        const nowPlayingInfo = this.Playlist[this.PlaylistCurrentIndex];
 
-        if (info["remoteMeta"] != undefined) {
-            nowPlayingInfo.Title = info["remoteMeta"]["title"] || "";
-            const hasBadTitle = nowPlayingInfo.Title?.indexOf('text=') ?? -1;
-            if (hasBadTitle > -1) {
-                nowPlayingInfo.Title = nowPlayingInfo.Title.substring(hasBadTitle + 6);
-                nowPlayingInfo.Title = nowPlayingInfo.Title.substring(0, nowPlayingInfo.Title.indexOf('"'));
-            }
-            nowPlayingInfo.Artist = info["remoteMeta"]["artist"];
-            if (info["remoteMeta"]["album"] != undefined) {
-                nowPlayingInfo.Album = info["remoteMeta"]["album"];
-            }
-            else if (info["remoteMeta"]["remote_title"] != undefined) {
-                nowPlayingInfo.Album = info["remoteMeta"]["remote_title"];
-            }
-            if (info["remoteMeta"]["type"] != undefined) {
-                nowPlayingInfo.Type = info["remoteMeta"]["type"];
-            }
-            let artURL = "";
-            if (info["remoteMeta"]["artwork_url"] != undefined) {
-                artURL = info["remoteMeta"]["artwork_url"].toString();
-                if (artURL.substring(0, 4) != "http") {
-                    artURL = "http://" + this.Server.Ip + ":" + this.Server.Port + "/" + artURL.replace(/^\//, '');
-                }
-            }
-            else if (info["remoteMeta"]["artwork_track_id"] != undefined) {
-                artURL = "http://" + this.Server.Ip + ":" + this.Server.Port + "/music/" + info["remoteMeta"]["artwork_track_id"] + "/cover.jpg";
-            }
-            nowPlayingInfo.ArtUrl = artURL;
-
-            if (this.BitRate == undefined) { this.BitRate = ""; }
-            if (nowPlayingInfo.Artist == undefined) { nowPlayingInfo.Artist = ""; }
-            if (nowPlayingInfo.Album == undefined) { nowPlayingInfo.Album = ""; }
-            this.NowPlayingUrl = (info["remoteMeta"]["url"] != undefined) ? info["remoteMeta"]["url"] : "";
+        if (info.remoteMeta != undefined) {
+            this.applyRemoteMeta(info.remoteMeta, nowPlayingInfo);
         }
 
-        if (updateVars == false) {
+        if (!updateVars) {
             try {
                 updateVars = (this.Title != nowPlayingInfo.Title);
-            }
-            catch (Error) {
+            } catch (Error) {
                 System.Print("player.Playlist_Cur_Index=" + this.PlaylistCurrentIndex);
                 System.Print("Error=" + Error);
             }
         }
 
-        if (updateVars == true) {
-            var Title = System.ConvertFromUTF8(nowPlayingInfo.Title);
-
-            if (this.Title != Title) {
+        if (updateVars) {
+            const title = System.ConvertFromUTF8(nowPlayingInfo.Title);
+            if (this.Title != title) {
                 System.SignalEvent("SongChangeP" + paddedPlayerId);
                 this.HasPandoraThumbsUp = false;
             }
 
-            this.Title = Title;
+            this.Title = title;
             this.Artist = System.ConvertFromUTF8(nowPlayingInfo.Artist);
             this.Album = System.ConvertFromUTF8(nowPlayingInfo.Album);
             this.NowPlayingCoverArt = nowPlayingInfo.ArtUrl;
@@ -389,53 +239,168 @@ class Player {
             if (nowPlayingInfo.Type != undefined) {
                 this.IsPlayingPandora = (nowPlayingInfo.Type.indexOf("(Pandora)") > -1);
                 this.Type = nowPlayingInfo.Type;
-            }
-            else {
+            } else {
                 this.IsPlayingPandora = false;
                 this.Type = "";
             }
 
-            if (info["remoteMeta"] != undefined) {
-                dbg('Setting Player: ' + this.Id + ' BitRate from info["remoteMeta"]["bitrate"]: ' + info["remoteMeta"]["bitrate"]);
-                if (info["remoteMeta"]["bitrate"] != undefined) {
-                    this.BitRate = info["remoteMeta"]["bitrate"];
-                }
-                if (info["remoteMeta"]["album"] != undefined) {
-                    this.Album = System.ConvertFromUTF8(info["remoteMeta"]["album"]);
-                }
+            if (info.remoteMeta != undefined) {
+                const meta = info.remoteMeta;
+                dbg('Setting Player: ' + this.Id + ' BitRate from remoteMeta.bitrate: ' + meta.bitrate);
+                if (meta.bitrate != undefined) { this.BitRate = meta.bitrate; }
+                if (meta.album != undefined) { this.Album = System.ConvertFromUTF8(meta.album); }
             }
 
             this.updateVariables();
+            this.propagateToSyncedPlayers();
+        }
+    }
 
-            for (let i = 0; i < this.SyncedPlayers.length; i++) {
-                const syncedPlayer = this.SyncedPlayers[i];
+    private updateSyncState(info: LyrionStatusData): boolean {
+        const prevCount = this.SyncedPlayers.length;
 
-                syncedPlayer.Title = this.Title;
-                syncedPlayer.Artist = this.Artist;
-                syncedPlayer.Album = this.Album;
-                syncedPlayer.NowPlayingCoverArt = this.NowPlayingCoverArt;
-                syncedPlayer.Genre = this.Genre;
-                syncedPlayer.BitRate = this.BitRate;
-                syncedPlayer.CanSeek = this.CanSeek;
-                syncedPlayer.Repeat = this.Repeat;
-                syncedPlayer.RepeatType = this.RepeatType;
-                syncedPlayer.Shuffle = this.Shuffle;
-                syncedPlayer.ShuffleType = this.ShuffleType;
-                syncedPlayer.IsPlayingPandora = this.IsPlayingPandora;
-                syncedPlayer.HasPandoraThumbsUp = this.HasPandoraThumbsUp;
-                syncedPlayer.Type = this.Type;
-                syncedPlayer.Progress = this.Progress;
-                syncedPlayer.Duration = this.Duration;
-                syncedPlayer.ProgressBar = this.ProgressBar;
-                syncedPlayer.SongID = this.SongID;
-                syncedPlayer.Mode = this.Mode;
-                syncedPlayer.StationName = this.StationName;
-                syncedPlayer.PlaylistCurrentIndex = this.PlaylistCurrentIndex;
-                syncedPlayer.PlaylistCount = this.PlaylistCount;
-                syncedPlayer.Playlist = this.Playlist;
+        if (info.sync_master == undefined) {
+            this.IsSynced = false;
+            this.IsSyncMaster = false;
+            this.IsSyncSlave = false;
+            this.SyncedPlayers = [];
+            return prevCount != 0;
+        }
 
-                syncedPlayer.updateVariables();
+        this.SyncedPlayers = [];
+
+        let masterPlayer: Player | undefined = undefined;
+        for (let i = 0; i < this.Server.Players.length; i++) {
+            if (this.Server.Players[i].MacAddress == info.sync_master) {
+                masterPlayer = this.Server.Players[i];
+                break;
             }
+        }
+        if (masterPlayer) {
+            this.SyncedPlayers.push(masterPlayer);
+        }
+
+        if (info.sync_master == this.MacAddress) {
+            this.IsSynced = true;
+            this.IsSyncMaster = true;
+            this.IsSyncSlave = false;
+        } else {
+            this.IsSyncMaster = false;
+        }
+
+        if (info.sync_slaves != undefined) {
+            const syncList = info.sync_slaves.split(",");
+            for (let i = 0; i < syncList.length; i++) {
+                let slavePlayer: Player | undefined = undefined;
+                for (let j = 0; j < this.Server.Players.length; j++) {
+                    if (this.Server.Players[j].MacAddress == syncList[i]) {
+                        slavePlayer = this.Server.Players[j];
+                        break;
+                    }
+                }
+                if (slavePlayer) {
+                    this.SyncedPlayers.push(slavePlayer);
+                    slavePlayer.IsSynced = true;
+                    slavePlayer.IsSyncMaster = false;
+                    slavePlayer.IsSyncSlave = true;
+                }
+            }
+        }
+
+        return prevCount != this.SyncedPlayers.length;
+    }
+
+    private buildPlaylistItem(entry: LyrionPlaylistEntry): PlaylistItem {
+        const item = getEmptyPlaylistItem();
+        item.Id = entry.id;
+        item.Url = entry.url;
+        item.Duration = entry.duration;
+        item.Title = this.fixTitle(System.ConvertFromUTF8(entry.title));
+
+        if (entry.album != undefined && entry.album != entry.title) {
+            item.Album = System.ConvertFromUTF8(entry.album);
+        } else if (entry.remote_title != undefined && entry.remote_title != entry.title) {
+            item.Album = System.ConvertFromUTF8(entry.remote_title);
+        }
+
+        if (entry.artist != undefined) {
+            item.Artist = System.ConvertFromUTF8(entry.artist);
+        } else if (entry.albumartist != undefined) {
+            item.Artist = System.ConvertFromUTF8(entry.albumartist);
+        }
+
+        item.ArtUrl = this.resolveArtUrl(entry.artwork_url, entry.artwork_track_id);
+        item.Remote = entry.remote?.toString() ?? "";
+        item.Type = entry.type ?? "";
+        item.BitRate = entry.bitrate ?? "";
+        item.Genre = entry.genre ?? "";
+        return item;
+    }
+
+    private applyRemoteMeta(meta: LyrionRemoteMeta, nowPlayingInfo: PlaylistItem): void {
+        nowPlayingInfo.Title = this.fixTitle(meta.title ?? "");
+        nowPlayingInfo.Artist = meta.artist ?? "";
+        if (meta.album != undefined) {
+            nowPlayingInfo.Album = meta.album;
+        } else if (meta.remote_title != undefined) {
+            nowPlayingInfo.Album = meta.remote_title;
+        }
+        if (meta.type != undefined) {
+            nowPlayingInfo.Type = meta.type;
+        }
+        nowPlayingInfo.ArtUrl = this.resolveArtUrl(meta.artwork_url, meta.artwork_track_id);
+        this.NowPlayingUrl = meta.url ?? "";
+    }
+
+    private resolveArtUrl(artworkUrl?: string, artworkTrackId?: string): string {
+        if (artworkUrl != undefined) {
+            const url = artworkUrl.toString();
+            return url.substring(0, 4) != "http"
+                ? "http://" + this.Server.Ip + ":" + this.Server.Port + "/" + url.replace(/^\//, '')
+                : url;
+        }
+        if (artworkTrackId != undefined) {
+            return "http://" + this.Server.Ip + ":" + this.Server.Port + "/music/" + artworkTrackId + "/cover.jpg";
+        }
+        return "";
+    }
+
+    private fixTitle(title: string): string {
+        const idx = title.indexOf('text=');
+        if (idx > -1) {
+            title = title.substring(idx + 6);
+            title = title.substring(0, title.indexOf('"'));
+        }
+        return title;
+    }
+
+    private propagateToSyncedPlayers(): void {
+        for (let i = 0; i < this.SyncedPlayers.length; i++) {
+            const syncedPlayer = this.SyncedPlayers[i];
+            syncedPlayer.Title = this.Title;
+            syncedPlayer.Artist = this.Artist;
+            syncedPlayer.Album = this.Album;
+            syncedPlayer.NowPlayingCoverArt = this.NowPlayingCoverArt;
+            syncedPlayer.Genre = this.Genre;
+            syncedPlayer.BitRate = this.BitRate;
+            syncedPlayer.CanSeek = this.CanSeek;
+            syncedPlayer.Repeat = this.Repeat;
+            syncedPlayer.RepeatType = this.RepeatType;
+            syncedPlayer.Shuffle = this.Shuffle;
+            syncedPlayer.ShuffleType = this.ShuffleType;
+            syncedPlayer.IsPlayingPandora = this.IsPlayingPandora;
+            syncedPlayer.HasPandoraThumbsUp = this.HasPandoraThumbsUp;
+            syncedPlayer.Type = this.Type;
+            syncedPlayer.Progress = this.Progress;
+            syncedPlayer.Duration = this.Duration;
+            syncedPlayer.ProgressBar = this.ProgressBar;
+            syncedPlayer.SongID = this.SongID;
+            syncedPlayer.Mode = this.Mode;
+            syncedPlayer.StationName = this.StationName;
+            syncedPlayer.PlaylistCurrentIndex = this.PlaylistCurrentIndex;
+            syncedPlayer.PlaylistCount = this.PlaylistCount;
+            syncedPlayer.Playlist = this.Playlist;
+            syncedPlayer.updateVariables();
         }
     }
 
@@ -534,7 +499,7 @@ class Player {
     }
 
     subscribeToStatus(): void {
-        const json = '[{"id":-1,"data":{"response":"/' + this.Server.ClientId + '/slim/playerstatus/' + this.MacAddress + '","request":["' + this.MacAddress + '",["status","0",' + g_Max_Now_Playing_List_Size + ',"tags:uBJjdKlaAxcNory","subscribe:60"]]}' + ',"channel":"/slim/subscribe"}]';
+        const json = buildSlimSubscribeJson(this.Id, undefined, this.Server.ClientId, "slim/playerstatus/" + this.MacAddress, this.MacAddress, [LyrionCmd.Status, "0", g_Max_Now_Playing_List_Size, g_Status_Tags, "subscribe:60"]);
         this.Server.sendJsonCommand(json);
     }
 }

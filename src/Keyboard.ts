@@ -123,10 +123,26 @@ function enterKeyBoardInputImpl(remotePlayer: RemotePlayer, key: number): void {
     if (sendNow == true) {
         //Figure out the Remote mode(Search, Playlist modifiy, create station
         const commands = remotePlayer.CurrentList.ListItems[remotePlayer.CurrentList.Selected].Actions[0].GoCmd;
-        let params = remotePlayer.CurrentList.ListItems[remotePlayer.CurrentList.Selected].Actions[0].GoParams;
-        params = params.replace('__TAGGEDINPUT__', remotePlayer.KeyboardData) + ',"useContextMenu:1"';
-        let json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",[' + commands + ',0,' + g_Max_Poll_Count + ',' + params + ']]}' + ',"channel":"/slim/request"}]';
-        json = json.replace(/\//g, "\\/");
+        const params = remotePlayer.CurrentList.ListItems[remotePlayer.CurrentList.Selected].Actions[0].GoParams.slice();
+        for (let pi = 0; pi < params.length; pi++) {
+            if (params[pi].indexOf("__TAGGEDINPUT__") > -1) {
+                params[pi] = params[pi].replace("__TAGGEDINPUT__", remotePlayer.KeyboardData);
+                break;
+            }
+        }
+        params.push("useContextMenu:1");
+        remotePlayer.SetNewBrowseListRequestCorrelation();
+        const json = buildSlimRequestJson(
+            remotePlayer.Player.Id,
+            remotePlayer.Remote.Id,
+            remotePlayer.Player.Server.ClientId,
+            g_Slim_Request,
+            remotePlayer.Player.MacAddress,
+            (commands as LyrionCommandArray)
+                .concat([0, g_Max_Poll_Count])
+                .concat(params as LyrionCommandArray),
+            remotePlayer.BrowseListRequestCorrelation
+        );
 
         remotePlayer.BrowseList.Open();
         remotePlayer.BrowseList.RemoveAll();

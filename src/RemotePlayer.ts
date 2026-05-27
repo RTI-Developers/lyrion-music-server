@@ -50,7 +50,7 @@ class RemotePlayer {
         const command = this.CurrentList.ListItems[index].Actions[0].GoCmd;
         const params = this.CurrentList.ListItems[index].Actions[0].GoParams;
 
-        if (command == '"jiveblankcommand"') {
+        if (command.some(function(c) { return c === "jiveblankcommand"; })) {
             this.ListBack();
             return;
         }
@@ -62,10 +62,27 @@ class RemotePlayer {
         this.SetNewBrowseListRequestCorrelation();
 
         let json: string;
-        if (command.indexOf("play") > -1) {
-            json = ('[{"id": "' + paddedPlayerId + "_" + this.Remote.Id + "_" + this.BrowseListRequestCorrelation + '","data":{"response":"/' + this.Player.Server.ClientId + '/slim/request","request":["' + this.Player.MacAddress.toLowerCase() + '",[' + command + ',' + params + ']]}' + ',"channel":"/slim/request"}]');
+        if (command.some(function(c) { return c.indexOf("play") > -1; })) {
+            json = buildSlimRequestJson(
+                this.Player.Id,
+                this.Remote.Id,
+                this.Player.Server.ClientId,
+                g_Slim_Request,
+                this.Player.MacAddress.toLowerCase(),
+                (command as LyrionCommandArray)
+                    .concat(params as LyrionCommandArray),
+                this.BrowseListRequestCorrelation);
         } else {
-            json = ('[{"id": "' + paddedPlayerId + "_" + this.Remote.Id + "_" + this.BrowseListRequestCorrelation + '","data":{"response":"/' + this.Player.Server.ClientId + '/slim/request","request":["' + this.Player.MacAddress.toLowerCase() + '",[' + command + ',' + this.Offset + ',' + g_Max_Poll_Count + ',' + params + ']]}' + ',"channel":"/slim/request"}]');
+            json = buildSlimRequestJson(
+                this.Player.Id,
+                this.Remote.Id,
+                this.Player.Server.ClientId,
+                g_Slim_Request,
+                this.Player.MacAddress.toLowerCase(),
+                (command as LyrionCommandArray)
+                    .concat([this.Offset, g_Max_Poll_Count])
+                    .concat(params as LyrionCommandArray),
+                this.BrowseListRequestCorrelation);
         }
 
         if (this.CurrentList.ListItems[index].PlayOnly != true) {

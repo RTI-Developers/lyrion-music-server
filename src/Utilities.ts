@@ -1,3 +1,6 @@
+const g_Status_Tags = "tags:uBJjdKlaAxcNory";
+const g_Slim_Request = "slim/request";
+
 function padDigit(num: number): string {
     if (num.toString().length == 1) {
         return "0" + num;
@@ -29,6 +32,28 @@ function getJson(data: string): any {
     }
 }
 
+function parseLyrionCometd(data: string): LyrionCometdMessage[] | false {
+    const result = getJson(data);
+    return (result !== false) ? result as LyrionCometdMessage[] : false;
+}
+
+function parseLyrionRpc(data: string): LyrionRpcResponse | false {
+    const result = getJson(data);
+    return (result !== false) ? result as LyrionRpcResponse : false;
+}
+
+function isLyrionServerStatus(data: object): data is LyrionServerStatusData {
+    return "players_loop" in data;
+}
+
+function isLyrionPlayerStatus(data: object): data is LyrionStatusData {
+    return "player_name" in data;
+}
+
+function isLyrionMenuData(data: object): data is LyrionMenuData {
+    return "item_loop" in data;
+}
+
 function toTimeString(seconds: number): string {
     let h, m, s, result = '';
     // HOURs
@@ -47,28 +72,13 @@ function toTimeString(seconds: number): string {
     return result;
 }
 
-function getItemIdValue(params: string): string {
-    const paramsArray = params.split(",");
-    for (var p = 0; p < paramsArray.length; p++) {
-        var values = paramsArray[p].split(":");
-        if (values[0] == '"item_id') {
-            return paramsArray[p];
+function getItemIdValue(params: string[]): string {
+    for (var p = 0; p < params.length; p++) {
+        if (params[p].indexOf("item_id") > -1) {
+            return params[p];
         }
     }
     return "";
-}
-
-function getItemIdValuePair(params: string): string {
-    var itemId;
-    const paramsArray = params.split(',');
-    for (var Param in paramsArray) {
-        var Info = paramsArray[Param].split(':');
-        if (Info[0].indexOf("item_id") > -1) {
-            itemId = Info[0] + ":" + Info[1];//Params[Param];
-            break;
-        }
-    }
-    return itemId || "";
 }
 
 function printOutResults(data: string): void {
@@ -171,19 +181,67 @@ function getEmptyBrowseListItem(): BrowseListItem {
 function getEmptyActionItems(): ActionItems {
     return {
         Items: [],
-        GoCmd: "",
-        GoParams: "",
-        PlayCmd: "",
-        PlayParams: "",
-        AddHoldCmd: "",
-        AddHoldParams: "",
-        AddCmd: "",
-        AddParams: "",
-        MoreCmd: "",
-        MoreParams: "",
-        Params: "",
-        CommonParams: ""
+        GoCmd: [],
+        GoParams: [],
+        PlayCmd: [],
+        PlayParams: [],
+        AddHoldCmd: [],
+        AddHoldParams: [],
+        AddCmd: [],
+        AddParams: [],
+        MoreCmd: [],
+        MoreParams: [],
+        Params: [],
+        CommonParams: []
     };
+}
+
+function buildRequestId(playerId: number | undefined, remoteId: number | undefined, correlationId?: number): string {
+    let id = (playerId ?? -1) + "_" + (remoteId ?? -1);
+    if (correlationId !== undefined) { id += "_" + correlationId; }
+    return id;
+}
+
+function parseRequestId(id: string): { playerId: number | undefined; remoteId: number | undefined; correlationId: number | undefined } {
+    const parts = id.split("_");
+    return {
+        playerId: parts.length > 0 ? parseInt(parts[0], 10) : undefined,
+        remoteId: parts.length > 1 ? parseInt(parts[1], 10) : undefined,
+        correlationId: parts.length > 2 ? parseInt(parts[2], 10) : undefined
+    };
+}
+
+function buildSlimRequestJson(playerId: number | undefined, remoteId: number | undefined, clientId: string, responsePath: string, target: string, cmd: LyrionCommandArray, correlationId?: number): string {
+    const request: LyrionSlimRequest = {
+        id: buildRequestId(playerId, remoteId, correlationId),
+        data: {
+            response: "/" + clientId + "/" + responsePath,
+            request: [target, cmd]
+        },
+        channel: "/slim/request"
+    };
+    return JSON.stringify([request]);
+}
+
+function buildSlimSubscribeJson(playerId: number | undefined, remoteId: number | undefined, clientId: string, responsePath: string, target: string, cmd: LyrionCommandArray): string {
+    const request: LyrionSlimSubscribeRequest = {
+        id: buildRequestId(playerId, remoteId),
+        data: {
+            response: "/" + clientId + "/" + responsePath,
+            request: [target, cmd]
+        },
+        channel: "/slim/subscribe"
+    };
+    return JSON.stringify([request]);
+}
+
+function buildRpcRequestJson(id: string, target: string, cmd: LyrionCommandArray): string {
+    const request: LyrionRpcRequest = {
+        id: id,
+        method: "slim.request",
+        params: [target, cmd]
+    };
+    return JSON.stringify(request);
 }
 
 function findMenuItem(menuTitle: string, listItems: BrowseListItem[]): BrowseListItem | null {

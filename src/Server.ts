@@ -1,10 +1,10 @@
 class Server {
 	Connection: TCP;
-    ClientId: string;
+    ClientId: string = "";
 	Players: Player[] = [];
     Ip: string;
     Port: number;
-    ServerVersion: number = 0;
+    ServerVersion: string = "";
     ConnectionIncomingData: string = "";
     ConnectionContentSize: number = 0;
     BufferCount: number = 0;
@@ -58,19 +58,26 @@ class Server {
     }
 
     handleConnection(): void {
-        const json = '[{"channel":"/meta/handshake","version":"1.0","supportedConnectionTypes":["long-polling","streaming"]}]';
-        this.sendJsonCommand(json);
+        const request: LyrionHandshakeRequest = { channel: "/meta/handshake", version: "1.0", supportedConnectionTypes: ["long-polling", "streaming"] };
+        this.sendJsonCommand(JSON.stringify([request]));
     }
 
     handleDisconnect(): void {
         for (let i = 0; i < this.Players.length; i++) {
             this.Players[i].Connected = false;
+            this.Players[i].NowPlayingTimer.Stop();
             this.Players[i].updateVariables();
         }
     }
 
     requestPlayerList(): void {
-        const json = '[{"id":-1,"data":{"response":"/' + this.ClientId + '/slim/serverstatus","request":["",["serverstatus",0,999]]}' + ',"channel":"/slim/request"}]';
+        const json = buildSlimRequestJson(
+            undefined,
+            undefined,
+            this.ClientId,
+            "slim/serverstatus",
+            "",
+            [LyrionCmd.ServerStatus, 0, 999]);
         this.sendJsonCommand(json);
     }
 
@@ -162,18 +169,24 @@ class Server {
                 }
 
                 const cleanJson = existingData.substring(existingData.indexOf("{"), existingData.lastIndexOf('}') + 1);
-                let incomingJson = getJson(cleanJson);
 
                 if (g_Print_Incoming_Json) {
                     System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
-                    printMaxLineSize(incomingJson);
+                    printMaxLineSize(cleanJson);
                     System.Print(g_DriverName + "***** End Incoming JSON Data*******");
                 }
 
-                const playerId: string = incomingJson["id"].split("::")[1];
-                const requestedSubfolder: string = incomingJson["id"].split("::")[2] ?? "";
-                const folderTitle: string = incomingJson["result"]["title"];
-                const results: FavoriteResponse[] = incomingJson["result"]["loop_loop"];
+                const rpcResponse = parseLyrionRpc(cleanJson);
+                if (rpcResponse === false) {
+                    System.Print(g_DriverName + " Failed to parse play_random_favorite RPC response.");
+                    return;
+                }
+
+                const idParts = rpcResponse.id.split("::");
+                const playerId: string = idParts[1];
+                const requestedSubfolder: string = idParts[2] ?? "";
+                const folderTitle: string = rpcResponse.result.title ?? "";
+                const results: LyrionFavoriteItem[] = rpcResponse.result.loop_loop ?? [];
 
                 System.Print(g_DriverName + ` Handling Random Playlist Request, server [${this.Ip}], player [${playerId}], requestedSubfolder [${requestedSubfolder}], folderTitle [${folderTitle}].`);
 
@@ -184,7 +197,7 @@ class Server {
                         System.Print(g_DriverName + ` Examining result with name [${result.name}], hasItems [${result.hasitems}], isAudio [${result.isaudio}].`);
 
                         if (result.name.toUpperCase() == requestedSubfolder.toUpperCase() && result.hasitems && !result.isaudio) {
-                            const json = `{"id": "${incomingJson["id"]}", "method": "slim.request", "params": ["", ["favorites", "items", 0, 100, "item_id:${result.id}"]]}`;
+                            const json = buildRpcRequestJson(rpcResponse.id, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100, "item_id:" + result.id]);
 
                             System.Print(g_DriverName + ` Found Favorites subfolder with name [${requestedSubfolder}], requesting contents.`);
 
@@ -213,7 +226,7 @@ class Server {
                         const randomPlaylistIndex = Math.floor(Math.random() * playlistIds.length);
                         const randomPlaylistId = playlistIds[randomPlaylistIndex];
                         System.Print(g_DriverName + ` Playing random playlist [${randomPlaylistId}].`);
-                        const json = `{"id": "play_playlist", "method": "slim.request", "params": ["${playerId}", ["favorites", "playlist", "play", "item_id:${randomPlaylistId}"]]}`;
+                        const json = buildRpcRequestJson("play_playlist", playerId, [LyrionCmd.Favorites, LyrionFavoritesCmd.Playlist, LyrionPlaylistCmd.Play, "item_id:" + randomPlaylistId]);
                         this.sendJsonCommand(json, true);
                         return;
                     }
@@ -255,88 +268,91 @@ class Server {
             System.Print(g_DriverName + "***** End Incoming JSON Data*******");
         }
 
-        let incomingJson = getJson(data);
-        const nowPlayingJson = incomingJson;
-        if (incomingJson != false) {
-            if (incomingJson[1] != undefined) {
-                incomingJson = incomingJson[1];
-            }
-            else {
-                incomingJson = incomingJson[0];
-            }
-
-            if (incomingJson["data"] != undefined) {
-                if (incomingJson["data"]["item_loop"] != undefined) {
-                    parseMenu(incomingJson, this);
-                }
-                else if (incomingJson["data"]["players_loop"] != undefined) {
-                    this.ServerVersion = incomingJson["data"]["version"];
-                    let delay = 5000;
-                    for (let i = 0; i < incomingJson["data"]["players_loop"].length; i++) {
-                        const playerData = incomingJson["data"]["players_loop"][i];
-                        const playerName = playerData["name"];
-
-                        let player: Player | null = null;
-                        for (let i = 0; i < g_Players.length; i++) {
-                            if (g_Players[i].Name == playerName) {
-                                player = g_Players[i];
-                                break;
-                            }
-                        }
-
-                        if (!player) {
-                            dbg("Didn't find match for Player with name: " + playerName);
-                            continue;
-                        }
-
-                        player.MacAddress = playerData["playerid"].toLowerCase();
-                        player.Connected = playerData.connected;
-
-                        player.NowPlayingTimer.Stop();
-                        player.NowPlayingTimer.Start(onTimerSubscribeToPlayerStatus, delay);
-                        delay = delay + 1500;
-
-                        const paddedPlayerId = padDigit(player.Id);
-                        SystemVars.Write("ConnectedP" + paddedPlayerId, true);
-                        SystemVars.Write("NotConnectedP" + paddedPlayerId, false);
-
-                        const json = '[{"id":"' + player.Id + '_-1","data":{"response":"/' + this.ClientId + '/slim/request","request":["' + player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"menu:opml_generic","direct:1"]]}' + ',"channel":"/slim/request"}]';
-                        this.sendJsonCommand(json);
-                    }
-                }
-                else if (incomingJson["data"]["player_name"] != undefined) {
-                    for (let i = 0; i < nowPlayingJson.length; i++) {
-                        const statusData = nowPlayingJson[i];
-                        if (statusData["data"] == undefined) { continue; }
-                        let player: Player | null = null;
-                        for (let j = 0; j < this.Players.length; j++) {
-                            if (this.Players[j].Name == statusData["data"]["player_name"]) {
-                                player = this.Players[j];
-                                break;
-                            }
-                        }
-                        if (player) { player.applyStatusUpdate(statusData); }
-                    }
-                }
-            }
-            else {
-                if (incomingJson["clientId"] != undefined) {
-                    const clientId = incomingJson["clientId"];
-                    if (this.ClientId != clientId) {
-                        this.ClientId = clientId;
-                        const json = '[{"connectionType":"streaming","channel":"/meta/connect","clientId":"' + this.ClientId + '"}' + ',{"subscription":"/' + this.ClientId + '/**","channel":"/meta/subscribe","clientId":"' + this.ClientId + '"}]';
-                        this.sendJsonCommand(json);
-                        this.StartUpTimer.Start(onTimerGetPlayers, 2000);
-                    }
-                }
-            }
-        }
-        else {
+        const messages = parseLyrionCometd(data);
+        if (messages === false) {
             System.Print("**********************Not JSON*********************************");
             printMaxLineSize(data);
             this.ConnectionIncomingData = "";
             this.BufferCount = 0;
             System.Print("**********************End Not JSON*********************************");
+            return;
+        }
+
+        const incomingMsg = messages.length > 1 ? messages[1] : messages[0];
+
+        if (incomingMsg.data !== undefined) {
+            if (isLyrionMenuData(incomingMsg.data)) {
+                parseMenu(incomingMsg, this);
+            }
+            else if (isLyrionServerStatus(incomingMsg.data)) {
+                const serverData = incomingMsg.data;
+                this.ServerVersion = serverData.version;
+                let delay = 5000;
+                for (let i = 0; i < serverData.players_loop.length; i++) {
+                    const playerData = serverData.players_loop[i];
+                    const playerName = playerData.name;
+
+                    let player: Player | null = null;
+                    for (let j = 0; j < g_Players.length; j++) {
+                        if (g_Players[j].Name == playerName) {
+                            player = g_Players[j];
+                            break;
+                        }
+                    }
+
+                    if (!player) {
+                        dbg("Didn't find match for Player with name: " + playerName);
+                        continue;
+                    }
+
+                    player.MacAddress = playerData.playerid.toLowerCase();
+                    player.Connected = playerData.connected === 1;
+
+                    player.NowPlayingTimer.Stop();
+                    player.NowPlayingTimer.Start(onTimerSubscribeToPlayerStatus, delay);
+                    delay = delay + 1500;
+
+                    const paddedPlayerId = padDigit(player.Id);
+                    SystemVars.Write("ConnectedP" + paddedPlayerId, true);
+                    SystemVars.Write("NotConnectedP" + paddedPlayerId, false);
+
+                    const json = buildSlimRequestJson(
+                        player.Id,
+                        undefined,
+                        this.ClientId,
+                        g_Slim_Request,
+                        player.MacAddress,
+                        [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "menu:opml_generic", "direct:1"]);
+                    this.sendJsonCommand(json);
+                }
+            }
+            else if (isLyrionPlayerStatus(incomingMsg.data)) {
+                for (let i = 0; i < messages.length; i++) {
+                    const statusMsg = messages[i];
+                    if (statusMsg.data === undefined || !isLyrionPlayerStatus(statusMsg.data)) { continue; }
+                    const statusInfo = statusMsg.data;
+                    let player: Player | null = null;
+                    for (let j = 0; j < this.Players.length; j++) {
+                        if (this.Players[j].Name == statusInfo.player_name) {
+                            player = this.Players[j];
+                            break;
+                        }
+                    }
+                    if (player) { player.applyStatusUpdate(statusInfo); }
+                }
+            }
+        }
+        else {
+            if (incomingMsg.clientId !== undefined) {
+                const clientId = incomingMsg.clientId;
+                if (this.ClientId != clientId) {
+                    this.ClientId = clientId;
+                    const connect: LyrionMetaConnectRequest = { connectionType: "streaming", channel: "/meta/connect", clientId: this.ClientId };
+                    const subscribe: LyrionMetaSubscribeRequest = { subscription: "/" + this.ClientId + "/**", channel: "/meta/subscribe", clientId: this.ClientId };
+                    this.sendJsonCommand(JSON.stringify([connect, subscribe]));
+                    this.StartUpTimer.Start(onTimerGetPlayers, 2000);
+                }
+            }
         }
     }
 
