@@ -210,45 +210,42 @@ class Player {
 
         const nowPlayingInfo = this.Playlist[this.PlaylistCurrentIndex];
 
-        if (info.remoteMeta != undefined) {
+        if (info.remoteMeta != undefined && nowPlayingInfo != undefined) {
             this.applyRemoteMeta(info.remoteMeta, nowPlayingInfo);
         }
 
-        if (!updateVars) {
-            try {
-                updateVars = (this.Title != nowPlayingInfo.Title);
-            } catch (Error) {
-                System.Print("player.Playlist_Cur_Index=" + this.PlaylistCurrentIndex);
-                System.Print("Error=" + Error);
-            }
+        if (!updateVars && nowPlayingInfo != undefined) {
+            updateVars = (this.Title != nowPlayingInfo.Title);
         }
 
         if (updateVars) {
-            const title = System.ConvertFromUTF8(nowPlayingInfo.Title);
-            if (this.Title != title) {
-                System.SignalEvent("SongChangeP" + paddedPlayerId);
-                this.HasPandoraThumbsUp = false;
-            }
+            if (nowPlayingInfo != undefined) {
+                const title = System.ConvertFromUTF8(nowPlayingInfo.Title);
+                if (this.Title != title) {
+                    System.SignalEvent("SongChangeP" + paddedPlayerId);
+                    this.HasPandoraThumbsUp = false;
+                }
 
-            this.Title = title;
-            this.Artist = System.ConvertFromUTF8(nowPlayingInfo.Artist);
-            this.Album = System.ConvertFromUTF8(nowPlayingInfo.Album);
-            this.NowPlayingCoverArt = nowPlayingInfo.ArtUrl;
-            this.Genre = nowPlayingInfo.Genre;
-            this.BitRate = nowPlayingInfo.BitRate;
-            if (nowPlayingInfo.Type != undefined) {
-                this.IsPlayingPandora = (nowPlayingInfo.Type.indexOf("(Pandora)") > -1);
-                this.Type = nowPlayingInfo.Type;
-            } else {
-                this.IsPlayingPandora = false;
-                this.Type = "";
-            }
+                this.Title = title;
+                this.Artist = System.ConvertFromUTF8(nowPlayingInfo.Artist);
+                this.Album = System.ConvertFromUTF8(nowPlayingInfo.Album);
+                this.NowPlayingCoverArt = nowPlayingInfo.ArtUrl;
+                this.Genre = nowPlayingInfo.Genre;
+                this.BitRate = nowPlayingInfo.BitRate;
+                if (nowPlayingInfo.Type != undefined) {
+                    this.IsPlayingPandora = (nowPlayingInfo.Type.indexOf("(Pandora)") > -1);
+                    this.Type = nowPlayingInfo.Type;
+                } else {
+                    this.IsPlayingPandora = false;
+                    this.Type = "";
+                }
 
-            if (info.remoteMeta != undefined) {
-                const meta = info.remoteMeta;
-                dbg('Setting Player: ' + this.Id + ' BitRate from remoteMeta.bitrate: ' + meta.bitrate);
-                if (meta.bitrate != undefined) { this.BitRate = meta.bitrate; }
-                if (meta.album != undefined) { this.Album = System.ConvertFromUTF8(meta.album); }
+                if (info.remoteMeta != undefined) {
+                    const meta = info.remoteMeta;
+                    dbg('Setting Player: ' + this.Id + ' BitRate from remoteMeta.bitrate: ' + meta.bitrate);
+                    if (meta.bitrate != undefined) { this.BitRate = meta.bitrate; }
+                    if (meta.album != undefined) { this.Album = System.ConvertFromUTF8(meta.album); }
+                }
             }
 
             this.updateVariables();

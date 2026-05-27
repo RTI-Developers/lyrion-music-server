@@ -679,7 +679,6 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
             break;
     }
 
-    remotePlayer.Player.Server.ConnectionIncomingData = "";
     remotePlayer.Player.Server.sendJsonCommand(json, isRpc);
 }
 
@@ -765,7 +764,6 @@ function browseTest(playerId: number, service: string, remoteId: number): void {
             break;
     }
 
-    remotePlayer.Player.Server.ConnectionIncomingData = "";
     remotePlayer.Player.Server.sendJsonCommand(json, isRpc);
 }
 
@@ -833,15 +831,11 @@ function changeDebugMode(debugItem: string, todo: string): void {
     printDebugModes();
 }
 
-function printBuffer(playerId: number, remoteId: number): void {
-    const server = getRemotePlayer(remoteId, playerId)?.Player?.Server;
-    if (!server) { return; }
-    System.Print("**********************Existing Buffer Data*********************************");
+function printBuffer(_playerId: number, remoteId: number): void {
+    System.Print("**********************Parser State*********************************");
     System.Print("**********************Requested By Remote " + remoteId + "********************************");
-    printMaxLineSize(server.ConnectionIncomingData);
-    server.ConnectionIncomingData = "";
-    server.BufferCount = 0;
-    System.Print("**********************End Existing Buffer Data*********************************");
+    System.Print("HTTP parser buffer is internal (two-state machine).");
+    System.Print("**********************End Parser State*********************************");
 }
 
 function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo: string, remoteId: number): void {

@@ -5,9 +5,8 @@ class Server {
     Ip: string;
     Port: number;
     ServerVersion: string = "";
-    ConnectionIncomingData: string = "";
-    ConnectionContentSize: number = 0;
-    BufferCount: number = 0;
+    private _rawBuffer: string = "";
+    private _bodyBytesExpected: number = 0;
     Connected: boolean = false;
     StartUpTimer: Timer = new Timer();
 
@@ -58,6 +57,7 @@ class Server {
     }
 
     handleConnection(): void {
+        this._resetParserState();
         const request: LyrionHandshakeRequest = { channel: "/meta/handshake", version: "1.0", supportedConnectionTypes: ["long-polling", "streaming"] };
         this.sendJsonCommand(JSON.stringify([request]));
     }
@@ -82,178 +82,144 @@ class Server {
     }
 
     handleIncomingData(data: string): void {
-        const lines = data.split('\r\n');
-        const httpData = data.split('\r\n\r\n');
-
         if (g_Print_Incoming_Raw) {
             System.Print("");
             System.Print(g_DriverName + "**********************OnCommRX Start************************************************************************************");
-            System.Print("HTTPData.length =" + httpData.length);
-            System.Print("Lines.length=" + lines.length);
-            System.Print("ConnectionContentSize=" + this.ConnectionContentSize);
+            System.Print("CLBody=" + this._bodyBytesExpected + " Buffer=" + this._rawBuffer.length + " Incoming=" + data.length);
             printMaxLineSize(data);
             System.Print(g_DriverName + "**********************OnCommRX End*************************************************************************************");
             System.Print("");
         }
+        this._rawBuffer += data;
+        this._processBuffer();
+    }
 
-        if (lines.length == 3) {
-            if (lines[1].indexOf("HTTP/1.1") > -1) {
-                this.ConnectionIncomingData += lines[0];
+    private _resetParserState(): void {
+        this._rawBuffer = "";
+        this._bodyBytesExpected = 0;
+    }
+
+    private _processBuffer(): void {
+        while (this._rawBuffer.length > 0) {
+            if (this._bodyBytesExpected > 0) {
+                // Waiting for the rest of a Content-Length body
+                if (this._rawBuffer.length < this._bodyBytesExpected) return;
+                const body = this._rawBuffer.substring(0, this._bodyBytesExpected);
+                this._rawBuffer = this._rawBuffer.substring(this._bodyBytesExpected);
+                this._bodyBytesExpected = 0;
+                this._dispatchBody(body);
+            } else if (this._rawBuffer.indexOf('HTTP/') === 0) {
+                // New HTTP response — consume headers
+                const sep = this._rawBuffer.indexOf('\r\n\r\n');
+                if (sep === -1) return;
+                const headers = this._rawBuffer.substring(0, sep);
+                this._rawBuffer = this._rawBuffer.substring(sep + 4);
+                const clIdx = headers.indexOf('Content-Length:');
+                if (clIdx > -1) {
+                    const lineEnd = headers.indexOf('\r\n', clIdx);
+                    const clStr = lineEnd > -1
+                        ? headers.substring(clIdx + 15, lineEnd)
+                        : headers.substring(clIdx + 15);
+                    this._bodyBytesExpected = parseInt(clStr, 10);
+                }
+                // Transfer-Encoding: chunked — chunks follow and are parsed as chunk frames below
+            } else {
+                // Chunk frame: <hex size>\r\n<data>\r\n
+                const crlfIdx = this._rawBuffer.indexOf('\r\n');
+                if (crlfIdx === -1) return;
+                const chunkSize = parseInt(this._rawBuffer.substring(0, crlfIdx), 16);
+                if (isNaN(chunkSize) || chunkSize < 0) {
+                    // Skip unrecognised line
+                    this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2);
+                    continue;
+                }
+                if (chunkSize === 0) {
+                    // Terminal chunk — consume size line + trailing CRLF
+                    this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2);
+                    if (this._rawBuffer.indexOf('\r\n') === 0) {
+                        this._rawBuffer = this._rawBuffer.substring(2);
+                    }
+                    continue;
+                }
+                const needed = crlfIdx + 2 + chunkSize + 2;
+                if (this._rawBuffer.length < needed) return;
+                const chunkData = this._rawBuffer.substring(crlfIdx + 2, crlfIdx + 2 + chunkSize);
+                this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2 + chunkSize + 2);
+                this._dispatchBody(chunkData);
             }
-            else {
-                this.parseIncomingJson(lines[1].replace(/\n|\r/g, ""));
+        }
+    }
+
+    private _dispatchBody(body: string): void {
+        if (body.indexOf('play_random_favorite') > 0) {
+            const cleanJson = body.substring(body.indexOf("{"), body.lastIndexOf('}') + 1);
+
+            if (g_Print_Incoming_Json) {
+                System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
+                printMaxLineSize(cleanJson);
+                System.Print(g_DriverName + "***** End Incoming JSON Data*******");
+            }
+
+            const rpcResponse = parseLyrionRpc(cleanJson);
+            if (rpcResponse === false) {
+                System.Print(g_DriverName + " Failed to parse play_random_favorite RPC response.");
                 return;
             }
-        }
 
-        if (httpData.length > 1) {
-            const extraData = httpData[0].split('\r\n');
-            if (extraData.length > 1) {
-                for (var d = 0; d < extraData.length; d++) {
-                    this.ConnectionIncomingData += extraData[d];
-                }
-            }
-            this.ConnectionIncomingData += httpData[1];
-        }
-        else if (lines.length == 1) {
-            this.ConnectionIncomingData += lines[0];
-        }
-        else if (lines.length == 2) {
-            if (lines[1].length > 0) {
-                if (lines[1].indexOf("HTTP") == -1) {
-                    this.ConnectionIncomingData = lines[1];
-                    this.ConnectionContentSize = parseInt(lines[0], 16);
-                }
-                else {
-                    this.ConnectionIncomingData += lines[0];
-                }
-            }
-            else {
-                this.ConnectionIncomingData += lines[0];
-            }
-        }
-        else {
-            this.ConnectionIncomingData += data;
-        }
+            const idParts = rpcResponse.id.split("::");
+            const playerId: string = idParts[1];
+            const requestedSubfolder: string = idParts[2] ?? "";
+            const folderTitle: string = rpcResponse.result.title ?? "";
+            const results: LyrionFavoriteItem[] = rpcResponse.result.loop_loop ?? [];
 
-        const existingData = this.ConnectionIncomingData;
+            System.Print(g_DriverName + ` Handling Random Playlist Request, server [${this.Ip}], player [${playerId}], requestedSubfolder [${requestedSubfolder}], folderTitle [${folderTitle}].`);
 
-        let processData = existingData.replace(/\n|\r/g, "");
+            if (folderTitle == "Favorites" && requestedSubfolder != "") {
+                for (let i = 0; i < results.length; i++) {
+                    const result = results[i];
 
-        if (processData.length == this.ConnectionContentSize) {
-            this.ConnectionContentSize = 0;
-            this.ConnectionIncomingData = "";
-            this.parseIncomingJson(processData);
-            return;
-        }
-        else if (processData.length > this.ConnectionContentSize && this.ConnectionContentSize > 0) {
-            processData = processData.substring(0, this.ConnectionContentSize);
-            this.ConnectionContentSize = 0;
-            this.ConnectionIncomingData = "";
-            this.parseUndelimitedJson(processData);
-            return;
-        }
+                    System.Print(g_DriverName + ` Examining result with name [${result.name}], hasItems [${result.hasitems}], isAudio [${result.isaudio}].`);
 
-        const openCount = (existingData.match(/[[]{/g) || []).length;
-        const closeCount = (existingData.match(/}]/g) || []).length;
-        if (openCount != 0 && closeCount != 0 && openCount == closeCount) {
+                    if (result.name.toUpperCase() == requestedSubfolder.toUpperCase() && result.hasitems && !result.isaudio) {
+                        const json = buildRpcRequestJson(rpcResponse.id, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100, "item_id:" + result.id]);
 
-            if (existingData.indexOf('play_random_favorite') > 0) {
-                this.ConnectionIncomingData = "";
-                this.ConnectionContentSize = 0;
+                        System.Print(g_DriverName + ` Found Favorites subfolder with name [${requestedSubfolder}], requesting contents.`);
 
-                if (g_Print_Incoming_Raw) {
-                    System.Print(g_DriverName + "***** Start Existing Data*******");
-                    printMaxLineSize(existingData);
-                    System.Print(g_DriverName + "***** End Existing Data*******");
-                }
-
-                const cleanJson = existingData.substring(existingData.indexOf("{"), existingData.lastIndexOf('}') + 1);
-
-                if (g_Print_Incoming_Json) {
-                    System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
-                    printMaxLineSize(cleanJson);
-                    System.Print(g_DriverName + "***** End Incoming JSON Data*******");
-                }
-
-                const rpcResponse = parseLyrionRpc(cleanJson);
-                if (rpcResponse === false) {
-                    System.Print(g_DriverName + " Failed to parse play_random_favorite RPC response.");
-                    return;
-                }
-
-                const idParts = rpcResponse.id.split("::");
-                const playerId: string = idParts[1];
-                const requestedSubfolder: string = idParts[2] ?? "";
-                const folderTitle: string = rpcResponse.result.title ?? "";
-                const results: LyrionFavoriteItem[] = rpcResponse.result.loop_loop ?? [];
-
-                System.Print(g_DriverName + ` Handling Random Playlist Request, server [${this.Ip}], player [${playerId}], requestedSubfolder [${requestedSubfolder}], folderTitle [${folderTitle}].`);
-
-                if (folderTitle == "Favorites" && requestedSubfolder != "") {
-                    for (let i = 0; i < results.length; i++) {
-                        const result = results[i];
-
-                        System.Print(g_DriverName + ` Examining result with name [${result.name}], hasItems [${result.hasitems}], isAudio [${result.isaudio}].`);
-
-                        if (result.name.toUpperCase() == requestedSubfolder.toUpperCase() && result.hasitems && !result.isaudio) {
-                            const json = buildRpcRequestJson(rpcResponse.id, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100, "item_id:" + result.id]);
-
-                            System.Print(g_DriverName + ` Found Favorites subfolder with name [${requestedSubfolder}], requesting contents.`);
-
-                            this.sendJsonCommand(json, true);
-                            return;
-                        }
-                    }
-
-                    System.Print(g_DriverName + ` Unable to find Favorites subfolder with name [${requestedSubfolder}].`);
-                }
-                else {
-                    System.Print(g_DriverName + ` Searching for random playlist from Favorites subfolder [${requestedSubfolder}].`);
-
-                    const playlistIds: string[] = [];
-
-                    for (let i = 0; i < results.length; i++) {
-                        const result = results[i];
-
-                        if (result.type == "playlist" && result.hasitems && result.isaudio) {
-                            System.Print(g_DriverName + ` Adding playlist [${result.name}] to potential random playlist options.`);
-                            playlistIds.push(result.id);
-                        }
-                    }
-
-                    if (playlistIds.length > 0) {
-                        const randomPlaylistIndex = Math.floor(Math.random() * playlistIds.length);
-                        const randomPlaylistId = playlistIds[randomPlaylistIndex];
-                        System.Print(g_DriverName + ` Playing random playlist [${randomPlaylistId}].`);
-                        const json = buildRpcRequestJson("play_playlist", playerId, [LyrionCmd.Favorites, LyrionFavoritesCmd.Playlist, LyrionPlaylistCmd.Play, "item_id:" + randomPlaylistId]);
                         this.sendJsonCommand(json, true);
                         return;
                     }
-
-                    System.Print(g_DriverName + ` Found no eligible playlists in Favorites [${requestedSubfolder}] subfolder.`);
                 }
-            }
 
-            const allData = existingData.split('\r\n');
-            for (var i = 0; i < allData.length; i++) {
-                const cleanJson = allData[i].substring(allData[i].indexOf("[{"), allData[i].lastIndexOf('}]') + 2);
-                if (cleanJson.length > 10) {
-                    this.ConnectionIncomingData = "";
-                    this.ConnectionContentSize = 0;
-                    this.parseIncomingJson(cleanJson);
+                System.Print(g_DriverName + ` Unable to find Favorites subfolder with name [${requestedSubfolder}].`);
+            } else {
+                System.Print(g_DriverName + ` Searching for random playlist from Favorites subfolder [${requestedSubfolder}].`);
+
+                const playlistIds: string[] = [];
+
+                for (let i = 0; i < results.length; i++) {
+                    const result = results[i];
+
+                    if (result.type == "playlist" && result.hasitems && result.isaudio) {
+                        System.Print(g_DriverName + ` Adding playlist [${result.name}] to potential random playlist options.`);
+                        playlistIds.push(result.id);
+                    }
                 }
+
+                if (playlistIds.length > 0) {
+                    const randomPlaylistIndex = Math.floor(Math.random() * playlistIds.length);
+                    const randomPlaylistId = playlistIds[randomPlaylistIndex];
+                    System.Print(g_DriverName + ` Playing random playlist [${randomPlaylistId}].`);
+                    const json = buildRpcRequestJson("play_playlist", playerId, [LyrionCmd.Favorites, LyrionFavoritesCmd.Playlist, LyrionPlaylistCmd.Play, "item_id:" + randomPlaylistId]);
+                    this.sendJsonCommand(json, true);
+                    return;
+                }
+
+                System.Print(g_DriverName + ` Found no eligible playlists in Favorites [${requestedSubfolder}] subfolder.`);
             }
+            return;
         }
-        else {
-            if (openCount == 0 && closeCount == 0 || this.BufferCount > 100) {
-                this.ConnectionIncomingData = "";
-                this.BufferCount = 0;
-            }
-            else {
-                this.BufferCount++;
-            }
-        }
+
+        this.parseIncomingJson(body);
     }
 
     private parseIncomingJson(data: string): void {
@@ -272,8 +238,6 @@ class Server {
         if (messages === false) {
             System.Print("**********************Not JSON*********************************");
             printMaxLineSize(data);
-            this.ConnectionIncomingData = "";
-            this.BufferCount = 0;
             System.Print("**********************End Not JSON*********************************");
             return;
         }
@@ -356,12 +320,4 @@ class Server {
         }
     }
 
-    private parseUndelimitedJson(existingData: string): void {
-        const openCount = (existingData.match(/[[]{/g) || []).length;
-        const closeCount = (existingData.match(/}]/g) || []).length;
-        if (openCount != 0 && closeCount != 0 && openCount == closeCount) {
-            const json = existingData.substring(existingData.indexOf("[{"), existingData.lastIndexOf('}]') + 2);
-            this.parseIncomingJson(json);
-        }
-    }
 }

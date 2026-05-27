@@ -1,0 +1,382 @@
+[HARNESS] Logging to testrun5.log
+
+═══════════════════════════════════════════════════════════════
+ Lyrion driver integration test
+ Player : LMS-Test
+ Server : audio.internal.melena.casa:9000
+ Duration: 35s
+═══════════════════════════════════════════════════════════════
+
+[HARNESS] Starting Squeezelite "LMS-Test" → audio.internal.melena.casa
+[HARNESS] Squeezelite output → C:\repos\github\RTI-Developers\lyrion-music-server\test\squeezelite.log
+[HARNESS] Waiting 8s for Squeezelite to register with LMS …
+[HARNESS] Loading dist/index.js …
+[DRV] Initializing Lyrion version 2.0
+[DRV] Lyrion:Init
+[DRV] Lyrion:Adding Remote with Id: NaN
+[DRV] Lyrion:Adding default server with Ip: audio.internal.melena.casa and Port: 9000
+[DRV] Lyrion:Adding Player [1]
+[DRV] Lyrion:Adding RemotePlayer with RemoteId [0] and PlayerId [1]
+[DRV] Lyrion:Adding RemotePlayer with RemoteId [NaN] and PlayerId [1]
+[HARNESS] Driver initialized successfully
+[TCP #2] Connecting to audio.internal.melena.casa:9000
+[TCP #2] Connected
+[DRV] Lyrion:sendJsonCommand sending Command: [{"channel":"/meta/handshake","version":"1.0","supportedConnectionTypes":["long-polling","streaming"]}] to Server: audio.internal.melena.casa
+[DRV] 
+[DRV] Lyrion  **Sending the following Command with http header to audio.internal.melena.casa****
+[DRV] POST /cometd HTTP/1.1
+[DRV] Content-Length: 103
+[DRV] Content-Type: application/json
+[DRV] 
+[DRV] [{"channel":"/meta/handshake","version":"1.0","supportedConnectionTypes":["long-polling","streaming"]}]
+[DRV] 
+[DRV] 
+[DRV] Lyrion****End Post****
+[DRV] 
+[TCP #2 RX] 427B │ HTTP/1.1 200 OK ↵ Server: Lyrion Music Server (9.1.0 - 1771315634) ↵ Cache-Control: no-cache ↵ Pragma: no-cache ↵ Content-Le
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=427
+[DRV] HTTP/1.1 200 OK
+Server: Lyrion Music Server (9.1.0 - 1771315634)
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Length: 211
+Content-Type: application/json
+Expires: -1
+[DRV] 
+X-Time-To-Serve: 0.00287795066833496
+
+[{"clientId":"8e2a5e89","channel":"/meta/handshake","version":"1.0","successful":true,"advice":{"timeout":60000,"reconnect":"retry","i
+[DRV] nterval":0},"id":"","supportedConnectionTypes":["long-polling","streaming"]}]
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"clientId":"8e2a5e89","channel":"/meta/handshake","version":"1.0","successful":true,"advice":{"timeout":60000,"reconnect":"retry","interval":0},"id":"","supportedConnectionT
+[DRV] ypes":["long-polling","streaming"]}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[DRV] Lyrion:sendJsonCommand sending Command: [{"connectionType":"streaming","channel":"/meta/connect","clientId":"8e2a5e89"},{"subscription":"/8e2a5e89/**","channel":"/meta/subscribe","clientId":"8e2a5e89"}] to Server: audio.internal.melena.casa
+[DRV] 
+[DRV] Lyrion  **Sending the following Command with http header to audio.internal.melena.casa****
+[DRV] POST /cometd HTTP/1.1
+[DRV] Content-Length: 162
+[DRV] Content-Type: application/json
+[DRV] 
+[DRV] [{"connectionType":"streaming","channel":"/meta/connect","clientId":"8e2a5e89"},{"subscription":"/8e2a5e89/**","channel":"/meta/subscribe","clientId":"8e2a5e89"}]
+[DRV] 
+[DRV] 
+[DRV] Lyrion****End Post****
+[DRV] 
+[TCP #2 RX] 486B │ HTTP/1.1 200 OK ↵ Server: Lyrion Music Server (9.1.0 - 1771315634) ↵ Cache-Control: no-cache ↵ Pragma: no-cache ↵ Transfer-E
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=486
+[DRV] HTTP/1.1 200 OK
+Server: Lyrion Music Server (9.1.0 - 1771315634)
+Cache-Control: no-cache
+Pragma: no-cache
+Transfer-Encoding: chunked
+Content-Type: application/json
+Expir
+[DRV] es: -1
+X-Time-To-Serve: 0.00340795516967773
+
+100
+[{"successful":true,"advice":{"interval":5000},"id":"","timestamp":"Wed, 27 May 2026 16:11:06 GMT","clientId":"8e2a5e89","
+[DRV] channel":"/meta/connect"},{"channel":"/meta/subscribe","id":"","successful":true,"subscription":"/8e2a5e89/**","clientId":"8e2a5e89"}]
+
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"successful":true,"advice":{"interval":5000},"id":"","timestamp":"Wed, 27 May 2026 16:11:06 GMT","clientId":"8e2a5e89","channel":"/meta/connect"},{"channel":"/meta/subscribe
+[DRV] ","id":"","successful":true,"subscription":"/8e2a5e89/**","clientId":"8e2a5e89"}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[DRV] Lyrion:sendJsonCommand sending Command: [{"id":"-1_-1","data":{"response":"/8e2a5e89/slim/serverstatus","request":["",["serverstatus",0,999]]},"channel":"/slim/request"}] to Server: audio.internal.melena.casa
+[DRV] 
+[DRV] Lyrion  **Sending the following Command with http header to audio.internal.melena.casa****
+[DRV] POST /cometd HTTP/1.1
+[DRV] Content-Length: 130
+[DRV] Content-Type: application/json
+[DRV] 
+[DRV] [{"id":"-1_-1","data":{"response":"/8e2a5e89/slim/serverstatus","request":["",["serverstatus",0,999]]},"channel":"/slim/request"}]
+[DRV] 
+[DRV] 
+[DRV] Lyrion****End Post****
+[DRV] 
+[TCP #2 RX] 1863B │ 740 ↵ [{"data":{"info total genres":1,"player count":5,"info total albums":13,"info total songs":223,"newplugins":"Plugin
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=1863
+[DRV] 740
+[{"data":{"info total genres":1,"player count":5,"info total albums":13,"info total songs":223,"newplugins":"Plugin updates are available (Spotty)","httpport":"9000","uui
+[DRV] d":"68c5b66d-93da-4d7f-8e09-050a44686634","version":"9.1.0","info total artists":50,"info total duration":35673.859,"players_loop":[{"name":"Squeezebox Radio","model":"baby","
+[DRV] seq_no":"2","power":1,"ip":"10.80.30.129:34052","connected":1,"canpoweroff":1,"firmware":"8.5.3-r16974","playerid":"00:04:20:27:1e:cb","playerindex":"0","modelname":"Squeezebo
+[DRV] x Radio","uuid":"d7a4ae0c34e608ad88bb4a8129ae62af","isplayer":1,"displaytype":"none","isplaying":0},{"isplaying":0,"displaytype":"none","uuid":null,"modelname":"SqueezeLite","
+[DRV] isplayer":1,"canpoweroff":1,"firmware":"v1.9.9-1414","playerid":"00:00:00:00:00:05","playerindex":1,"connected":1,"ip":"127.0.0.1:38612","power":1,"seq_no":0,"model":"squeezel
+[DRV] ite","name":"Gym"},{"name":"Master Bath","model":"squeezelite","seq_no":0,"power":1,"ip":"127.0.0.1:55166","connected":1,"firmware":"v1.9.9-1414","playerindex":2,"playerid":"0
+[DRV] 0:00:00:00:00:07","canpoweroff":1,"uuid":null,"modelname":"SqueezeLite","isplayer":1,"displaytype":"none","isplaying":0},{"power":1,"name":"Home","model":"squeezelite","seq_no
+[DRV] ":0,"ip":"127.0.0.1:57292","playerindex":3,"firmware":"v1.9.9-1414","canpoweroff":1,"playerid":"00:00:00:00:00:06","modelname":"SqueezeLite","uuid":null,"isplayer":1,"connecte
+[DRV] d":1,"isplaying":0,"displaytype":"none"},{"isplaying":0,"displaytype":"none","playerindex":4,"firmware":"2.0.0-1524","canpoweroff":1,"playerid":"00:a0:98:7b:e9:75","modelname"
+[DRV] :"SqueezeLite","uuid":null,"isplayer":1,"connected":1,"ip":"10.80.30.206:60958","power":1,"model":"squeezelite","name":"LMS-Test","seq_no":0}],"ip":"10.80.30.49","lastscan":"1
+[DRV] 779350466","other player count":0},"id":"-1_-1","channel":"/8e2a5e89/slim/serverstatus","ext":{"priority":""}}]
+
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"data":{"info total genres":1,"player count":5,"info total albums":13,"info total songs":223,"newplugins":"Plugin updates are available (Spotty)","httpport":"9000","uuid":"6
+[DRV] 8c5b66d-93da-4d7f-8e09-050a44686634","version":"9.1.0","info total artists":50,"info total duration":35673.859,"players_loop":[{"name":"Squeezebox Radio","model":"baby","seq_n
+[DRV] o":"2","power":1,"ip":"10.80.30.129:34052","connected":1,"canpoweroff":1,"firmware":"8.5.3-r16974","playerid":"00:04:20:27:1e:cb","playerindex":"0","modelname":"Squeezebox Rad
+[DRV] io","uuid":"d7a4ae0c34e608ad88bb4a8129ae62af","isplayer":1,"displaytype":"none","isplaying":0},{"isplaying":0,"displaytype":"none","uuid":null,"modelname":"SqueezeLite","ispla
+[DRV] yer":1,"canpoweroff":1,"firmware":"v1.9.9-1414","playerid":"00:00:00:00:00:05","playerindex":1,"connected":1,"ip":"127.0.0.1:38612","power":1,"seq_no":0,"model":"squeezelite",
+[DRV] "name":"Gym"},{"name":"Master Bath","model":"squeezelite","seq_no":0,"power":1,"ip":"127.0.0.1:55166","connected":1,"firmware":"v1.9.9-1414","playerindex":2,"playerid":"00:00:
+[DRV] 00:00:00:07","canpoweroff":1,"uuid":null,"modelname":"SqueezeLite","isplayer":1,"displaytype":"none","isplaying":0},{"power":1,"name":"Home","model":"squeezelite","seq_no":0,"
+[DRV] ip":"127.0.0.1:57292","playerindex":3,"firmware":"v1.9.9-1414","canpoweroff":1,"playerid":"00:00:00:00:00:06","modelname":"SqueezeLite","uuid":null,"isplayer":1,"connected":1,
+[DRV] "isplaying":0,"displaytype":"none"},{"isplaying":0,"displaytype":"none","playerindex":4,"firmware":"2.0.0-1524","canpoweroff":1,"playerid":"00:a0:98:7b:e9:75","modelname":"Squ
+[DRV] eezeLite","uuid":null,"isplayer":1,"connected":1,"ip":"10.80.30.206:60958","power":1,"model":"squeezelite","name":"LMS-Test","seq_no":0}],"ip":"10.80.30.49","lastscan":"177935
+[DRV] 0466","other player count":0},"id":"-1_-1","channel":"/8e2a5e89/slim/serverstatus","ext":{"priority":""}}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[DRV] Lyrion:Didn't find match for Player with name: Squeezebox Radio
+[DRV] Lyrion:Didn't find match for Player with name: Gym
+[DRV] Lyrion:Didn't find match for Player with name: Master Bath
+[DRV] Lyrion:Didn't find match for Player with name: Home
+[DRV] Lyrion:sendJsonCommand sending Command: [{"id":"1_-1","data":{"response":"/8e2a5e89/slim/request","request":["00:a0:98:7b:e9:75",["menu","items",0,25,"menu:opml_generic","direct:1"]]},"channel":"/slim/request"}] to Server: audio.internal.melena.casa
+[DRV] 
+[DRV] Lyrion  **Sending the following Command with http header to audio.internal.melena.casa****
+[DRV] POST /cometd HTTP/1.1
+[DRV] Content-Length: 171
+[DRV] Content-Type: application/json
+[DRV] 
+[DRV] [{"id":"1_-1","data":{"response":"/8e2a5e89/slim/request","request":["00:a0:98:7b:e9:75",["menu","items",0,25,"menu:opml_generic","direct:1"]]},"channel":"/slim/request"}]
+[DRV] 
+[DRV] 
+[DRV] Lyrion****End Post****
+[DRV] 
+[TCP #2 RX] 296B │ HTTP/1.1 200 OK ↵ Server: Lyrion Music Server (9.1.0 - 1771315634) ↵ Cache-Control: no-cache ↵ Pragma: no-cache ↵ Content-Le
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=296
+[DRV] HTTP/1.1 200 OK
+Server: Lyrion Music Server (9.1.0 - 1771315634)
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Length: 82
+Content-Type: application/json
+Expires: -1
+
+[DRV] X-Time-To-Serve: 0.0143578052520752
+
+[{"id":"-1_-1","channel":"/slim/request","clientId":"8e2a5e89","successful":true}]
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"id":"-1_-1","channel":"/slim/request","clientId":"8e2a5e89","successful":true}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[TCP #2 RX] 10218B │ 27E2 ↵ [{"data":{"item_loop":[{"text":"My Music","weight":11,"node":"home","isANode":1,"id":"myMusic"},{"actions":{"go":{
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=10218
+[DRV] 27E2
+[{"data":{"item_loop":[{"text":"My Music","weight":11,"node":"home","isANode":1,"id":"myMusic"},{"actions":{"go":{"cmd":["favorites","items"],"params":{"menu":"favorites
+[DRV] "}}},"id":"favorites","text":"Favorites","weight":100,"node":"home"},{"window":{"icon-id":"plugins/DontStopTheMusic/html/images/icon.png"},"weight":1,"node":"settings","text":
+[DRV] "Don't Stop The Music","actions":{"go":{"cmd":["dontstopthemusicsetting"],"player":0}},"id":"settingsDontStopTheMusic"},{"node":"myMusic","weight":100,"text":"Library Views","
+[DRV] id":"opmlselectVirtualLibrary","actions":{"go":{"params":{"menu":"selectVirtualLibrary"},"cmd":["selectVirtualLibrary","items"],"player":0}},"window":{"titleStyle":"album","ic
+[DRV] on-id":"plugins/ExtendedBrowseModes/html/icon.png"},"displayWhenOff":0,"uuid":"6e5e0a00-e18a-11e3-8b68-0800200c9a66"},{"text":"My Apps","weight":80,"node":"home","actions":{"g
+[DRV] o":{"cmd":["myapps","items"],"params":{"menu":"myapps"},"player":0}},"id":"opmlmyapps","displayWhenOff":0,"window":{"titleStyle":"album","icon-id":"plugins/MyApps/html/images/
+[DRV] icon.png"},"uuid":"2E3ACD53-B9A8-4440-9C5B-517B1EB28E34"},{"uuid":null,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radiopresets.png"},"displayWhenOff
+[DRV] ":0,"actions":{"go":{"player":0,"params":{"menu":"presets"},"cmd":["presets","items"]}},"id":"opmlpresets","weight":5,"node":"radios","text":"My Presets"},{"uuid":null,"displa
+[DRV] yWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiolocal.png","titleStyle":"album"},"id":"opmllocal","actions":{"go":{"player":0,"params":{"menu":"local"},"cmd"
+[DRV] :["local","items"]}},"text":"Local Radio","weight":20,"node":"radios"},{"uuid":null,"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiomusic.png","titleS
+[DRV] tyle":"album"},"actions":{"go":{"params":{"menu":"music"},"cmd":["music","items"],"player":0}},"id":"opmlmusic","text":"Music","node":"radios","weight":30},{"uuid":null,"displ
+[DRV] ayWhenOff":0,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radionews.png"},"actions":{"go":{"player":0,"params":{"menu":"news"},"cmd":["news","items"]}
+[DRV] },"id":"opmlnews","text":"News","node":"radios","weight":45},{"text":"Sports","weight":40,"node":"radios","id":"opmlsports","actions":{"go":{"params":{"menu":"sports"},"cmd":[
+[DRV] "sports","items"],"player":0}},"displayWhenOff":0,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radiosports.png"},"uuid":null},{"window":{"icon-id":"/p
+[DRV] lugins/TuneIn/html/images/radiotalk.png","titleStyle":"album"},"displayWhenOff":0,"uuid":null,"node":"radios","weight":50,"text":"Talk","id":"opmltalk","actions":{"go":{"playe
+[DRV] r":0,"cmd":["talk","items"],"params":{"menu":"talk"}}}},{"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radioworld.png","titleStyle":"album"},"uuid":null,
+[DRV] "text":"By Location","weight":55,"node":"radios","actions":{"go":{"player":0,"params":{"menu":"location"},"cmd":["location","items"]}},"id":"opmllocation"},{"uuid":null,"windo
+[DRV] w":{"icon-id":"/plugins/TuneIn/html/images/radioworld.png","titleStyle":"album"},"displayWhenOff":0,"id":"opmllanguage","actions":{"go":{"player":0,"params":{"menu":"language"
+[DRV] },"cmd":["language","items"]}},"node":"radios","weight":56,"text":"By Language"},{"text":"Search TuneIn","weight":110,"node":"radios","input":{"softbutton2":"Delete","softbutt
+[DRV] on1":"Insert","len":1,"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to start your s
+[DRV] earch."},"processingPopup":{"text":"Searching..."},"title":"Search TuneIn"},"id":"opmlsearch","actions":{"go":{"player":0,"params":{"search":"__TAGGEDINPUT__","menu":"search"}
+[DRV] ,"cmd":["search","items"]}},"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiosearch.png","titleStyle":"album"},"uuid":null},{"actions":{"go":{"params":
+[DRV] {"menu":"podcast"},"cmd":["podcast","items"],"player":0}},"id":"opmlpodcast","text":"Podcasts","node":"radios","weight":70,"uuid":null,"displayWhenOff":0,"window":{"titleStyle
+[DRV] ":"album","icon-id":"/plugins/TuneIn/html/images/podcasts.png"}},{"actions":{"do":{"cmd":["power",0],"player":0}},"id":"playerpower","weight":100,"node":"home","text":"Turn Of
+[DRV] f LMS-Test"},{"text":"Audio","node":"settings","weight":35,"id":"settingsAudio","isANode":1},{"actions":{"do":{"choices":[{"cmd":["playlist","repeat","0"],"player":0},{"cmd":[
+[DRV] "playlist","repeat","1"],"player":0},{"player":0,"cmd":["playlist","repeat","2"]}]}},"id":"settingsRepeat","text":"Repeat","weight":20,"node":"settings","choiceStrings":["Off"
+[DRV] ,"Song","Playlist"],"selectedIndex":1},{"choiceStrings":["Off","Song","Album"],"selectedIndex":1,"actions":{"do":{"choices":[{"player":0,"cmd":["playlist","shuffle","0"]},{"pl
+[DRV] ayer":0,"cmd":["playlist","shuffle","1"]},{"player":0,"cmd":["playlist","shuffle","2"]}]}},"id":"settingsShuffle","text":"Shuffle","weight":10,"node":"settings"},{"id":"settin
+[DRV] gsAlarm","actions":{"go":{"cmd":["alarmsettings"],"player":0}},"node":"settings","weight":29,"text":"Alarm Clock"},{"node":"settingsAudio","weight":100,"text":"Fixed Volume","
+[DRV] actions":{"go":{"cmd":["jivefixedvolumesettings"],"player":0}},"id":"settingsFixedVolume","iconStyle":"hm_settingsAudio"},{"text":"Sleep","node":"settings","weight":65,"action
+[DRV] s":{"go":{"player":0,"cmd":["sleepsettings"]}},"id":"settingsSleep"},{"id":"settingsSync","actions":{"go":{"player":0,"cmd":["syncsettings"]}},"text":"Synchronize","weight":70
+[DRV] ,"node":"settings"},{"node":"advancedSettings","weight":100,"text":"Squeezebox Information","actions":{"go":{"cmd":["systeminfo","items"],"params":{"menu":1}}},"id":"settingsI
+[DRV] nformation"},{"weight":67,"node":"settings","text":"Squeezebox Name","id":"settingsPlayerNameChange","actions":{"do":{"params":{"playername":"__INPUT__"},"cmd":["name"],"playe
+[DRV] r":0}},"input":{"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to change the name of
+[DRV]  your player."},"softbutton1":"Insert","allowedChars":" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}|:\\\"'<>?-=,./~`[];0123456789","len":1,"softbutton2"
+[DRV] :"Delete","initialText":"LMS-Test"}},{"weight":30,"node":"settingsAudio","text":"Crossfade","actions":{"go":{"player":0,"cmd":["crossfadesettings"]}},"id":"settingsXfade","ico
+[DRV] nStyle":"hm_settingsAudio"},{"weight":40,"node":"settingsAudio","text":"Volume Adjustment","actions":{"go":{"cmd":["replaygainsettings"],"player":0}},"id":"settingsReplayGain"
+[DRV] ,"iconStyle":"hm_settingsAudio"},{"window":{"menuStyle":"album"},"text":"Radio","weight":20,"node":"home","id":"radios","actions":{"go":{"params":{"menu":"radio"},"cmd":["radi
+[DRV] os"]}}},{"iconStyle":"hm_advancedSettings","node":"advancedSettings","weight":105,"text":"Albums Sort Method","id":"settingsAlbumSettings","actions":{"go":{"cmd":["jivealbumso
+[DRV] rtsettings"],"params":{"menu":"radio"}}}},{"id":"myMusicArtistsComposers","actions":{"go":{"cmd":["browselibrary","items"],"params":{"role_id":"2","menu":1,"mode":"myMusicArti
+[DRV] stsComposers"}}},"node":"myMusic","homeMenuText":"Composers","weight":"12","text":"Composers","icon":"html/images/artists.png"},{"homeMenuText":"Compilations","node":"myMusic"
+[DRV] ,"weight":22,"text":"Compilations","id":"myMusicAlbumsVariousArtists","actions":{"go":{"params":{"menu":1,"mode":"vaalbums","artist_id":"6907"},"cmd":["browselibrary","items"]
+[DRV] }},"icon":"html/images/albums.png"},{"node":"myMusic","homeMenuText":"All Artists","weight":11,"text":"All Artists","actions":{"go":{"params":{"menu":1,"mode":"artists"},"cmd"
+[DRV] :["browselibrary","items"]}},"id":"myMusicArtistsAllArtists","icon":"html/images/artists.png"},{"actions":{"go":{"cmd":["browselibrary","items"],"params":{"mode":"search","men
+[DRV] u":1}}},"id":"myMusicSearch","text":"Search","weight":90,"node":"myMusic"},{"homeMenuText":"Browse Album Artists","node":"myMusic","weight":9,"text":"Album Artists","actions":
+[DRV] {"go":{"params":{"mode":"artists","menu":1,"role_id":"ALBUMARTIST"},"cmd":["browselibrary","items"]}},"id":"myMusicArtistsAlbumArtists","icon":"html/images/artists.png"},{"tex
+[DRV] t":"Albums","homeMenuText":"Browse Albums","node":"myMusic","weight":20,"id":"myMusicAlbums","actions":{"go":{"cmd":["browselibrary","items"],"params":{"mode":"albums","menu":
+[DRV] 1}}}},{"id":"myMusicNewMusic","actions":{"go":{"cmd":["browselibrary","items"],"params":{"sort":"new","wantMetadata":1,"mode":"albums","menu":1}}},"weight":50,"homeMenuText":"
+[DRV] New Music","node":"myMusic","text":"New Music"},{"actions":{"go":{"cmd":["browselibrary","items"],"params":{"menu":1,"mode":"years"}}},"id":"myMusicYears","homeMenuText":"Brow
+[DRV] se Years","node":"myMusic","weight":40,"text":"Years"},{"text":"Music Folder","weight":70,"homeMenuText":"Music Folder","node":"myMusic","actions":{"go":{"params":{"menu":1,"m
+[DRV] ode":"bmf"},"cmd":["browselibrary","items"]}},"id":"myMusicMusicFolder"},{"homeMenuText":"Browse Genres","node":"myMusic","weight":30,"text":"Genres","id":"myMusicGenres","act
+[DRV] ions":{"go":{"params":{"menu":1,"mode":"genres"},"cmd":["browselibrary","items"]}}},{"id":"opmlsounds","actions":{"go":{"player":0,"cmd":["sounds","items"],"params":{"menu":"s
+[DRV] ounds"}}},"weight":25,"node":"","text":"Sounds & Effects","uuid":"0381A1D8-7CDF-4236-BA8B-E92553162EDE","stringToken":null,"isApp":1,"window":{"titleStyle":"album","icon-id":"
+[DRV] plugins/Sounds/html/images/icon.png"},"displayWhenOff":0},{"text":"Spotty","weight":26,"node":"","actions":{"go":{"params":{"menu":"spotty"},"cmd":["spotty","items"],"player":
+[DRV] 0}},"id":"opmlspotty","displayWhenOff":0,"window":{"icon-id":"plugins/Spotty/html/images/93aac68fb06348598c1e67734dfaceee.png","titleStyle":"album"},"isApp":1,"stringToken":nu
+[DRV] ll,"uuid":"21cbb80e-67b8-44a8-a662-21c6c7ae5260"},{"window":{"text":"Search"},"homeMenuText":"Search","node":"home","weight":22,"text":"Search","input":{"processingPopup":{"te
+[DRV] xt":"Searching..."},"len":1,"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to start 
+[DRV] your search."}},"id":"globalSearch","actions":{"go":{"params":{"menu":"globalsearch","search":"__TAGGEDINPUT__"},"cmd":["globalsearch","items"]}}}],"count":42,"offset":0},"id"
+[DRV] :"1_-1","ext":{"priority":""},"channel":"/8e2a5e89/slim/request"}]
+
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"data":{"item_loop":[{"text":"My Music","weight":11,"node":"home","isANode":1,"id":"myMusic"},{"actions":{"go":{"cmd":["favorites","items"],"params":{"menu":"favorites"}}},"
+[DRV] id":"favorites","text":"Favorites","weight":100,"node":"home"},{"window":{"icon-id":"plugins/DontStopTheMusic/html/images/icon.png"},"weight":1,"node":"settings","text":"Don't
+[DRV]  Stop The Music","actions":{"go":{"cmd":["dontstopthemusicsetting"],"player":0}},"id":"settingsDontStopTheMusic"},{"node":"myMusic","weight":100,"text":"Library Views","id":"o
+[DRV] pmlselectVirtualLibrary","actions":{"go":{"params":{"menu":"selectVirtualLibrary"},"cmd":["selectVirtualLibrary","items"],"player":0}},"window":{"titleStyle":"album","icon-id"
+[DRV] :"plugins/ExtendedBrowseModes/html/icon.png"},"displayWhenOff":0,"uuid":"6e5e0a00-e18a-11e3-8b68-0800200c9a66"},{"text":"My Apps","weight":80,"node":"home","actions":{"go":{"c
+[DRV] md":["myapps","items"],"params":{"menu":"myapps"},"player":0}},"id":"opmlmyapps","displayWhenOff":0,"window":{"titleStyle":"album","icon-id":"plugins/MyApps/html/images/icon.p
+[DRV] ng"},"uuid":"2E3ACD53-B9A8-4440-9C5B-517B1EB28E34"},{"uuid":null,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radiopresets.png"},"displayWhenOff":0,"a
+[DRV] ctions":{"go":{"player":0,"params":{"menu":"presets"},"cmd":["presets","items"]}},"id":"opmlpresets","weight":5,"node":"radios","text":"My Presets"},{"uuid":null,"displayWhenO
+[DRV] ff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiolocal.png","titleStyle":"album"},"id":"opmllocal","actions":{"go":{"player":0,"params":{"menu":"local"},"cmd":["loc
+[DRV] al","items"]}},"text":"Local Radio","weight":20,"node":"radios"},{"uuid":null,"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiomusic.png","titleStyle":
+[DRV] "album"},"actions":{"go":{"params":{"menu":"music"},"cmd":["music","items"],"player":0}},"id":"opmlmusic","text":"Music","node":"radios","weight":30},{"uuid":null,"displayWhen
+[DRV] Off":0,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radionews.png"},"actions":{"go":{"player":0,"params":{"menu":"news"},"cmd":["news","items"]}},"id"
+[DRV] :"opmlnews","text":"News","node":"radios","weight":45},{"text":"Sports","weight":40,"node":"radios","id":"opmlsports","actions":{"go":{"params":{"menu":"sports"},"cmd":["sport
+[DRV] s","items"],"player":0}},"displayWhenOff":0,"window":{"titleStyle":"album","icon-id":"/plugins/TuneIn/html/images/radiosports.png"},"uuid":null},{"window":{"icon-id":"/plugins
+[DRV] /TuneIn/html/images/radiotalk.png","titleStyle":"album"},"displayWhenOff":0,"uuid":null,"node":"radios","weight":50,"text":"Talk","id":"opmltalk","actions":{"go":{"player":0,"
+[DRV] cmd":["talk","items"],"params":{"menu":"talk"}}}},{"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radioworld.png","titleStyle":"album"},"uuid":null,"text"
+[DRV] :"By Location","weight":55,"node":"radios","actions":{"go":{"player":0,"params":{"menu":"location"},"cmd":["location","items"]}},"id":"opmllocation"},{"uuid":null,"window":{"i
+[DRV] con-id":"/plugins/TuneIn/html/images/radioworld.png","titleStyle":"album"},"displayWhenOff":0,"id":"opmllanguage","actions":{"go":{"player":0,"params":{"menu":"language"},"cmd
+[DRV] ":["language","items"]}},"node":"radios","weight":56,"text":"By Language"},{"text":"Search TuneIn","weight":110,"node":"radios","input":{"softbutton2":"Delete","softbutton1":"
+[DRV] Insert","len":1,"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to start your search.
+[DRV] "},"processingPopup":{"text":"Searching..."},"title":"Search TuneIn"},"id":"opmlsearch","actions":{"go":{"player":0,"params":{"search":"__TAGGEDINPUT__","menu":"search"},"cmd"
+[DRV] :["search","items"]}},"displayWhenOff":0,"window":{"icon-id":"/plugins/TuneIn/html/images/radiosearch.png","titleStyle":"album"},"uuid":null},{"actions":{"go":{"params":{"menu
+[DRV] ":"podcast"},"cmd":["podcast","items"],"player":0}},"id":"opmlpodcast","text":"Podcasts","node":"radios","weight":70,"uuid":null,"displayWhenOff":0,"window":{"titleStyle":"alb
+[DRV] um","icon-id":"/plugins/TuneIn/html/images/podcasts.png"}},{"actions":{"do":{"cmd":["power",0],"player":0}},"id":"playerpower","weight":100,"node":"home","text":"Turn Off LMS-
+[DRV] Test"},{"text":"Audio","node":"settings","weight":35,"id":"settingsAudio","isANode":1},{"actions":{"do":{"choices":[{"cmd":["playlist","repeat","0"],"player":0},{"cmd":["playl
+[DRV] ist","repeat","1"],"player":0},{"player":0,"cmd":["playlist","repeat","2"]}]}},"id":"settingsRepeat","text":"Repeat","weight":20,"node":"settings","choiceStrings":["Off","Song
+[DRV] ","Playlist"],"selectedIndex":1},{"choiceStrings":["Off","Song","Album"],"selectedIndex":1,"actions":{"do":{"choices":[{"player":0,"cmd":["playlist","shuffle","0"]},{"player":
+[DRV] 0,"cmd":["playlist","shuffle","1"]},{"player":0,"cmd":["playlist","shuffle","2"]}]}},"id":"settingsShuffle","text":"Shuffle","weight":10,"node":"settings"},{"id":"settingsAlar
+[DRV] m","actions":{"go":{"cmd":["alarmsettings"],"player":0}},"node":"settings","weight":29,"text":"Alarm Clock"},{"node":"settingsAudio","weight":100,"text":"Fixed Volume","action
+[DRV] s":{"go":{"cmd":["jivefixedvolumesettings"],"player":0}},"id":"settingsFixedVolume","iconStyle":"hm_settingsAudio"},{"text":"Sleep","node":"settings","weight":65,"actions":{"g
+[DRV] o":{"player":0,"cmd":["sleepsettings"]}},"id":"settingsSleep"},{"id":"settingsSync","actions":{"go":{"player":0,"cmd":["syncsettings"]}},"text":"Synchronize","weight":70,"node
+[DRV] ":"settings"},{"node":"advancedSettings","weight":100,"text":"Squeezebox Information","actions":{"go":{"cmd":["systeminfo","items"],"params":{"menu":1}}},"id":"settingsInforma
+[DRV] tion"},{"weight":67,"node":"settings","text":"Squeezebox Name","id":"settingsPlayerNameChange","actions":{"do":{"params":{"playername":"__INPUT__"},"cmd":["name"],"player":0}}
+[DRV] ,"input":{"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to change the name of your 
+[DRV] player."},"softbutton1":"Insert","allowedChars":" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}|:\\\"'<>?-=,./~`[];0123456789","len":1,"softbutton2":"Dele
+[DRV] te","initialText":"LMS-Test"}},{"weight":30,"node":"settingsAudio","text":"Crossfade","actions":{"go":{"player":0,"cmd":["crossfadesettings"]}},"id":"settingsXfade","iconStyle
+[DRV] ":"hm_settingsAudio"},{"weight":40,"node":"settingsAudio","text":"Volume Adjustment","actions":{"go":{"cmd":["replaygainsettings"],"player":0}},"id":"settingsReplayGain","icon
+[DRV] Style":"hm_settingsAudio"},{"window":{"menuStyle":"album"},"text":"Radio","weight":20,"node":"home","id":"radios","actions":{"go":{"params":{"menu":"radio"},"cmd":["radios"]}}
+[DRV] },{"iconStyle":"hm_advancedSettings","node":"advancedSettings","weight":105,"text":"Albums Sort Method","id":"settingsAlbumSettings","actions":{"go":{"cmd":["jivealbumsortsett
+[DRV] ings"],"params":{"menu":"radio"}}}},{"id":"myMusicArtistsComposers","actions":{"go":{"cmd":["browselibrary","items"],"params":{"role_id":"2","menu":1,"mode":"myMusicArtistsCom
+[DRV] posers"}}},"node":"myMusic","homeMenuText":"Composers","weight":"12","text":"Composers","icon":"html/images/artists.png"},{"homeMenuText":"Compilations","node":"myMusic","weig
+[DRV] ht":22,"text":"Compilations","id":"myMusicAlbumsVariousArtists","actions":{"go":{"params":{"menu":1,"mode":"vaalbums","artist_id":"6907"},"cmd":["browselibrary","items"]}},"ic
+[DRV] on":"html/images/albums.png"},{"node":"myMusic","homeMenuText":"All Artists","weight":11,"text":"All Artists","actions":{"go":{"params":{"menu":1,"mode":"artists"},"cmd":["bro
+[DRV] wselibrary","items"]}},"id":"myMusicArtistsAllArtists","icon":"html/images/artists.png"},{"actions":{"go":{"cmd":["browselibrary","items"],"params":{"mode":"search","menu":1}}
+[DRV] },"id":"myMusicSearch","text":"Search","weight":90,"node":"myMusic"},{"homeMenuText":"Browse Album Artists","node":"myMusic","weight":9,"text":"Album Artists","actions":{"go":
+[DRV] {"params":{"mode":"artists","menu":1,"role_id":"ALBUMARTIST"},"cmd":["browselibrary","items"]}},"id":"myMusicArtistsAlbumArtists","icon":"html/images/artists.png"},{"text":"Al
+[DRV] bums","homeMenuText":"Browse Albums","node":"myMusic","weight":20,"id":"myMusicAlbums","actions":{"go":{"cmd":["browselibrary","items"],"params":{"mode":"albums","menu":1}}}},
+[DRV] {"id":"myMusicNewMusic","actions":{"go":{"cmd":["browselibrary","items"],"params":{"sort":"new","wantMetadata":1,"mode":"albums","menu":1}}},"weight":50,"homeMenuText":"New Mu
+[DRV] sic","node":"myMusic","text":"New Music"},{"actions":{"go":{"cmd":["browselibrary","items"],"params":{"menu":1,"mode":"years"}}},"id":"myMusicYears","homeMenuText":"Browse Yea
+[DRV] rs","node":"myMusic","weight":40,"text":"Years"},{"text":"Music Folder","weight":70,"homeMenuText":"Music Folder","node":"myMusic","actions":{"go":{"params":{"menu":1,"mode":"
+[DRV] bmf"},"cmd":["browselibrary","items"]}},"id":"myMusicMusicFolder"},{"homeMenuText":"Browse Genres","node":"myMusic","weight":30,"text":"Genres","id":"myMusicGenres","actions":
+[DRV] {"go":{"params":{"menu":1,"mode":"genres"},"cmd":["browselibrary","items"]}}},{"id":"opmlsounds","actions":{"go":{"player":0,"cmd":["sounds","items"],"params":{"menu":"sounds"
+[DRV] }}},"weight":25,"node":"","text":"Sounds & Effects","uuid":"0381A1D8-7CDF-4236-BA8B-E92553162EDE","stringToken":null,"isApp":1,"window":{"titleStyle":"album","icon-id":"plugin
+[DRV] s/Sounds/html/images/icon.png"},"displayWhenOff":0},{"text":"Spotty","weight":26,"node":"","actions":{"go":{"params":{"menu":"spotty"},"cmd":["spotty","items"],"player":0}},"i
+[DRV] d":"opmlspotty","displayWhenOff":0,"window":{"icon-id":"plugins/Spotty/html/images/93aac68fb06348598c1e67734dfaceee.png","titleStyle":"album"},"isApp":1,"stringToken":null,"uu
+[DRV] id":"21cbb80e-67b8-44a8-a662-21c6c7ae5260"},{"window":{"text":"Search"},"homeMenuText":"Search","node":"home","weight":22,"text":"Search","input":{"processingPopup":{"text":"S
+[DRV] earching..."},"len":1,"help":{"text":"Use the scroll wheel to change letters, then press the center button to select that letter. Press the center button again to start your s
+[DRV] earch."}},"id":"globalSearch","actions":{"go":{"params":{"menu":"globalsearch","search":"__TAGGEDINPUT__"},"cmd":["globalsearch","items"]}}}],"count":42,"offset":0},"id":"1_-1
+[DRV] ","ext":{"priority":""},"channel":"/8e2a5e89/slim/request"}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[DRV] Lyrion:parseParentMenu playerId: 1 remoteId: -1
+[DRV] Lyrion:Could not find RemotePlayer for RemoteId: -1 and PlayerId: 1 in list: 0,1,NaN,1
+[DRV] Lyrion:Retrying with PlayerId 0
+[DRV] Lyrion:Could not find RemotePlayer for RemoteId: -1 and PlayerId: 0 in list: 0,1,NaN,1
+[DRV] Lyrion:Adding 15 items to browse list for Remote: 0, Player: 1
+[DRV] Lyrion:Browse list now contains 15 items
+[DRV] Lyrion:Adding 15 items to browse list for Remote: NaN, Player: 1
+[DRV] Lyrion:Browse list now contains 15 items
+[TCP #2 RX] 295B │ HTTP/1.1 200 OK ↵ Server: Lyrion Music Server (9.1.0 - 1771315634) ↵ Cache-Control: no-cache ↵ Pragma: no-cache ↵ Content-Le
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=295
+[DRV] HTTP/1.1 200 OK
+Server: Lyrion Music Server (9.1.0 - 1771315634)
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Length: 81
+Content-Type: application/json
+Expires: -1
+
+[DRV] X-Time-To-Serve: 0.0302629470825195
+
+[{"clientId":"8e2a5e89","successful":true,"id":"1_-1","channel":"/slim/request"}]
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"clientId":"8e2a5e89","successful":true,"id":"1_-1","channel":"/slim/request"}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[DRV] Lyrion:sendJsonCommand sending Command: [{"id":"1_-1","data":{"response":"/8e2a5e89/slim/playerstatus/00:a0:98:7b:e9:75","request":["00:a0:98:7b:e9:75",["status","0",10,"tags:uBJjdKlaAxcNory","subscribe:60"]]},"channel":"/slim/subscribe"}] to Server: audio.internal.melena.casa
+[DRV] 
+[DRV] Lyrion  **Sending the following Command with http header to audio.internal.melena.casa****
+[DRV] POST /cometd HTTP/1.1
+[DRV] Content-Length: 199
+[DRV] Content-Type: application/json
+[DRV] 
+[DRV] [{"id":"1_-1","data":{"response":"/8e2a5e89/slim/playerstatus/00:a0:98:7b:e9:75","request":["00:a0:98:7b:e9:75",["status","0",10,"tags:uBJjdKlaAxcNory","subscribe:60"]]},"chan
+[DRV] nel":"/slim/subscribe"}]
+[DRV] 
+[DRV] 
+[DRV] Lyrion****End Post****
+[DRV] 
+[TCP #2 RX] 395B │ 184 ↵ [{"data":{"mode":"stop","signalstrength":0,"playlist mode":"off","playlist shuffle":0,"digital_volume_control":1,"u
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=395
+[DRV] 184
+[{"data":{"mode":"stop","signalstrength":0,"playlist mode":"off","playlist shuffle":0,"digital_volume_control":1,"use_volume_control":1,"player_name":"LMS-Test","player_c
+[DRV] onnected":1,"playlist_tracks":0,"player_ip":"10.80.30.206:60958","mixer volume":50,"power":1,"playlist repeat":0,"seq_no":0},"id":"1_-1","channel":"/8e2a5e89/slim/playerstatus
+[DRV] /00:a0:98:7b:e9:75","ext":{"priority":""}}]
+
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"data":{"mode":"stop","signalstrength":0,"playlist mode":"off","playlist shuffle":0,"digital_volume_control":1,"use_volume_control":1,"player_name":"LMS-Test","player_connec
+[DRV] ted":1,"playlist_tracks":0,"player_ip":"10.80.30.206:60958","mixer volume":50,"power":1,"playlist repeat":0,"seq_no":0},"id":"1_-1","channel":"/8e2a5e89/slim/playerstatus/00:a
+[DRV] 0:98:7b:e9:75","ext":{"priority":""}}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+[EVENT] StoppedP01
+[EVENT] PONP01
+[TCP #2 RX] 298B │ HTTP/1.1 200 OK ↵ Server: Lyrion Music Server (9.1.0 - 1771315634) ↵ Cache-Control: no-cache ↵ Pragma: no-cache ↵ Content-Le
+[DRV] 
+[DRV] Lyrion**********************OnCommRX Start************************************************************************************
+[DRV] CLBody=0 Buffer=0 Incoming=298
+[DRV] HTTP/1.1 200 OK
+Server: Lyrion Music Server (9.1.0 - 1771315634)
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Length: 83
+Content-Type: application/json
+Expires: -1
+
+[DRV] X-Time-To-Serve: 0.00550985336303711
+
+[{"successful":true,"clientId":"8e2a5e89","channel":"/slim/subscribe","id":"1_-1"}]
+[DRV] Lyrion**********************OnCommRX End*************************************************************************************
+[DRV] 
+[DRV] Lyrion***** Start Incoming JSON Data*******
+[DRV] [{"successful":true,"clientId":"8e2a5e89","channel":"/slim/subscribe","id":"1_-1"}]
+[DRV] Lyrion***** End Incoming JSON Data*******
+
+[HARNESS] Shutting down …

@@ -36,6 +36,11 @@
             "command": "npm install"
         },
         {
+            "label": "Process T4 Templates",
+            "type": "shell",
+            "command": "npm run process-t4",
+        },
+        {
             "label": "Typescript Build",
             "type": "typescript",
             "tsconfig": "tsconfig.json",
@@ -59,6 +64,7 @@
             "dependsOn": [
                 "Typescript Build",
                 "Uglify Javascript",
+                "Process T4 Templates",
 				"FileCopy - Driver"
             ]
         },
@@ -76,6 +82,7 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Typescript Build",
+                "Process T4 Templates",
 				"FileCopy - Driver"
             ]
         },
