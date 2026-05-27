@@ -28,7 +28,7 @@ for (var i = 1; i <= playerCount; i++)
 </category>
 
 <category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Now Playing" sourceid="Player<#= i #>">
-  <variable name="Now Playing List" sysvar="NowPlayingListP<#= paddedIndex #>%" type="list" />
+  <variable name="Now Playing List" sysvar="NowPlayingListP<#= paddedIndex #>%" type="list" buttontag="Queue" />
   <variable format="L:0:Play:1:Select" name="Playlist Mode (Integer)" sample="1" sysvar="PlayListModeIntegerP<#= paddedIndex #>%" type="integer" />
   <variable name="Playlist Play Mode" sample="true" sysvar="PlayListPlayModeP<#= paddedIndex #>%" type="boolean" />
   <variable name="Playlist Select/Edit Mode" sample="true" sysvar="PlayListSelectModeP<#= paddedIndex #>%" type="boolean" />
@@ -39,27 +39,27 @@ for (var i = 1; i <= playerCount; i++)
     <variable name="Player Name" sample="P<#= paddedIndex #> Name" sysvar="NameP<#= paddedIndex #>" type="string" />
     <variable name="Model" sample="squeezelite" sysvar="Model<#= paddedIndex #>" type="string" />
     <variable name="Player ID" sample="00:00:00:00:00" sysvar="MACP<#= paddedIndex #>" type="string" />
-    <variable name="Connected" sample="false" sysvar="ConnectedP<#= paddedIndex #>" type="boolean" />
+    <variable name="Connected" sample="false" sysvar="ConnectedP<#= paddedIndex #>" type="boolean" buttontag="Connected" />
     <variable name="NotConnected" sample="false" sysvar="NotConnectedP<#= paddedIndex #>" type="boolean" />
-    <variable name="Powered On" sample="true" sysvar="PoweredOnP<#= paddedIndex #>" type="boolean" />
-    <variable name="Powered Off" sample="false" sysvar="PoweredOffP<#= paddedIndex #>" type="boolean" />
-    <variable format="B:D:I" name="Playing" sample="true" sysvar="PlayingP<#= paddedIndex #>" type="boolean" />
+    <variable name="Powered On" sample="true" sysvar="PoweredOnP<#= paddedIndex #>" type="boolean" buttontag="Power On" />
+    <variable name="Powered Off" sample="false" sysvar="PoweredOffP<#= paddedIndex #>" type="boolean" buttontag="Power Off" />
+    <variable format="B:D:I" name="Playing" sample="true" sysvar="PlayingP<#= paddedIndex #>" type="boolean" buttontag="Play" />
     <variable name="Current Title" sample="Title" sysvar="TitleP<#= paddedIndex #>" type="string" buttontag="NP Title" />
     <variable name="Current Album" sample="Album" sysvar="AlbumP<#= paddedIndex #>" type="string" buttontag="NP Album" />
     <variable name="Current Artist" sample="Artist" sysvar="ArtistP<#= paddedIndex #>" type="string" buttontag="NP Artist" />
-    <variable name="Station /Playlist Name" sample="Station Play List Name" sysvar="StationNameP<#= paddedIndex #>" type="string" />
+    <variable name="Station /Playlist Name" sample="Station Play List Name" sysvar="StationNameP<#= paddedIndex #>" type="string" buttontag="NP Station" />
     <variable name="Progress (Display)" sample="02:21" sysvar="ProgressP<#= paddedIndex #>" type="string" buttontag="NP Elapsed" />
     <variable max="100" min="0" name="Progress (Progress Bar)" sysvar="ProgressBarP<#= paddedIndex #>" type="integer" buttontag="NP Progress" />
     <variable name="Duration (Display)" sample="24:06" sysvar="DurationP<#= paddedIndex #>" type="string" buttontag="NP Duration" />
     <variable name="Remaining Time (Display)" sample="02:21" sysvar="RemainingP<#= paddedIndex #>" type="string" />
     <variable name="Bit Rate" sample="BitRate" sysvar="BitRateP<#= paddedIndex #>" type="string" />
     <variable name="Type" sample="Type" sysvar="TypeP<#= paddedIndex #>" type="string" />
-    <variable max="100" min="0" name="Player Volume Level" sysvar="VolumeLevelP<#= paddedIndex #>" type="integer" />
-    <variable name="Volume Muted" sysvar="VolumeMutedP<#= paddedIndex #>" type="boolean" />
-    <variable name="Repeat" sample="false" sysvar="RepeatP<#= paddedIndex #>" type="boolean" />
-    <variable format="L:0:Off:1:Song:2:After Done" name="Repeat Type" sysvar="RepeatTypeP<#= paddedIndex #>" type="integer" />
-    <variable name="Shuffle" sample="false" sysvar="ShuffleP<#= paddedIndex #>" type="boolean" />
-    <variable format="L:0:Off:1:Song:2:Album" name="Shuffle Type" sysvar="ShuffleTypeP<#= paddedIndex #>" type="integer" />
+    <variable max="100" min="0" name="Player Volume Level" sysvar="VolumeLevelP<#= paddedIndex #>" type="integer" buttontag="Volume" />
+    <variable name="Volume Muted" sysvar="VolumeMutedP<#= paddedIndex #>" type="boolean" buttontag="Mute" />
+    <variable name="Repeat" sample="false" sysvar="RepeatP<#= paddedIndex #>" type="boolean" buttontag="Repeat On" />
+    <variable format="L:0:Off:1:Song:2:After Done" name="Repeat Type" sysvar="RepeatTypeP<#= paddedIndex #>" type="integer" buttontag="Repeat" />
+    <variable name="Shuffle" sample="false" sysvar="ShuffleP<#= paddedIndex #>" type="boolean" buttontag="Shuffle On" />
+    <variable format="L:0:Off:1:Song:2:Album" name="Shuffle Type" sysvar="ShuffleTypeP<#= paddedIndex #>" type="integer" buttontag="Shuffle" />
     <variable name="Cover Art" sysvar="CurrentCoverURLP<#= paddedIndex #>" type="image" buttontag="NP Cover" />
     <variable format="B:false:true" name="Playing Pandora" sample="true" sysvar="PlayingPandoraP<#= paddedIndex #>" type="boolean" />
     <variable format="B:false:true" name="NOT Playing Pandora" sample="true" sysvar="NotPlayingPandoraP<#= paddedIndex #>" type="boolean" />

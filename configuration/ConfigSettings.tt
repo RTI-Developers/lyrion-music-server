@@ -28,7 +28,7 @@ for (var i = 1; i <= playerCount; i++)
 	string paddedIndex = i.ToString().PadLeft(2, '0');
 #>
   <category condition="$Total_Players > <#= i - 1 #>" description="P<#= paddedIndex #> Info" hidden="false" name="P<#= paddedIndex #> Info" sourceid="Player<#= i #>">
-    <setting default="P<#= paddedIndex #>" description="Player Name" name="P<#= paddedIndex #> Name" type="string" variable="NameP<#= paddedIndex #>" />
+    <setting default="P<#= paddedIndex #>" description="Player Name" name="P<#= paddedIndex #> Name" newsourcedefault="Player" type="string" variable="NameP<#= paddedIndex #>" />
     <setting description="Custom Parent Menu Example" name="Use Custom Parent Menu" type="boolean" variable="Use_Custom_Parent_Menu_P<#= paddedIndex #>" />
     <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Order" type="string" variable="Custom_Menu_Order_P<#= paddedIndex #>" />
     <setting condition="$Use_Custom_Parent_Menu_P<#= paddedIndex #>" default="" description="Favorites:Favorites:Pandora:Pandora:Spotify:Spotify" name="Custom Parent Menu Names" type="string" variable="Custom_Menu_Names_P<#= paddedIndex #>" />

@@ -3,6 +3,9 @@
 <device>
   <sources>
     <source maxitems="<#= playerCount #>" name="Player" sourceid="Player">
+      <capabilities>
+        <audio roomvolumesource="true"/>
+      </capabilities>
       <templates>
         <template name="Music Player"/>
       </templates>

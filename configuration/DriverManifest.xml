@@ -1,36 +1,35 @@
 <?xml version='1.0' encoding='utf-8' ?>
 <driverManifest>
 <driver
-  author="JBWORKS"
+  author="Noesis Labs LLC"
   configSettingsStream="ConfigSettings.xml"
   copyright=""
-  deviceManufacturer="Squeezebox/vortexbox"
-  deviceModel="Squeezebox"
-  driverVersion="0.95"
-  helpTextStream="instructions.rtf"
+  deviceManufacturer="Lyrion"
+  deviceModel="Lyrion Music Server"
+  driverVersion="2.0"
   id="{9ABA89AC-DFB4-478D-8E95-A8DB901BE9D4}"
-  minimumRuntimeVersion="20"		
+  minimumRuntimeVersion="20"
   minimumSoftwareVersion="9.9"
   minimumApexVersion="10.0"
-  name="Multi-Instance Squeezebox"
+  name="Lyrion Music Server"
   processorType="XP-8"
   deviceDescriptionStream="DeviceDescription.xml"
-  systemEventsStream="SystemEvents.xml" 
+  systemEventsStream="SystemEvents.xml"
   systemFunctionsStream="SystemFunctions.xml"
   systemVariablesStream="SystemVariables.xml">
  		<processorScript stream="index.js" />
 
 		<package>
-			<output filename="squeezebox-multi-instance" public="true" />
+			<output filename="lyrion-music-server" public="true" />
 			<include filename="index.js"/>
 			<include filename="ConfigSettings.xml"/>
 			<include filename="DriverManifest.xml"/>
-			<include filename="instructions.rtf"/>
 			<include filename="DeviceDescription.xml"/>
+			<include filename="SystemEvents.xml"/>
 			<include filename="SystemFunctions.xml"/>
 			<include filename="SystemVariables.xml"/>
 			<description>
-				This driver allows IP communicatino Squeezebox servers.
+				A driver for Lyrion Music Server (Squeezebox) supporting multiple players.
 			</description>
 		</package>
   </driver>

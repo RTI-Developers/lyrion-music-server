@@ -168,6 +168,30 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="ViewID" type="deviceid" />
     </function>
 
+    <function alias="transport" export="transport:PlayPause" name="Play/Pause Toggle" repeatrate="0" buttontag="Play/Pause">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="pause" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="transport" export="transport:ThumbsUp" name="Thumbs Up" repeatrate="0" buttontag="Thumbs Up">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="pandora_love" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
+    <function alias="transport" export="transport:ThumbsDown" name="Thumbs Down" repeatrate="0" buttontag="Thumbs Down">
+      <parameter name="Player" type="mcinteger">
+<#= playerChoices #>
+			</parameter>
+      <parameter default="pandora_ban" name="Control" type="string" />
+      <parameter name="ViewID" type="deviceid" />
+    </function>
+
     <function export="transport" name="Transport Control" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
