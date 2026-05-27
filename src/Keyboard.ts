@@ -135,7 +135,7 @@ function enterKeyBoardInputImpl(remotePlayer: RemotePlayer, key: number): void {
 
         remotePlayer.CurrentList.MenuTitle = SystemVars.Read("BrowseListTitleP" + padDigit(remotePlayer.Player.Id) + "%" + remotePlayer.Remote.Id);
         remotePlayer.ListLevel++;
-        sendJsonCommand(json, remotePlayer.Player.Server);
+        remotePlayer.Player.Server.sendJsonCommand(json);
 
         remotePlayer.KeyboardData = "";
         hideKeyboardImpl(remotePlayer);

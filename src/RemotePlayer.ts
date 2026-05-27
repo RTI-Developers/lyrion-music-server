@@ -81,7 +81,7 @@ class RemotePlayer {
 
         this.PushHistory();
 
-        sendJsonCommand(json, this.Player.Server);
+        this.Player.Server.sendJsonCommand(json);
     }
 
     ListBack(): void {
@@ -134,5 +134,79 @@ class RemotePlayer {
 
     SetNewBrowseListRequestCorrelation(): void {
         this.BrowseListRequestCorrelation = Math.floor(Math.random() * 10000);
+    }
+
+    unselectNowPlayingItem(): void {
+        this.PlayListChangeCommands = [];
+        this.NowPlayingList.Open();
+        const lastItem = this.LastPlayListSelectedItem;
+        this.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + this.Player.Playlist[lastItem].Title);
+        this.NowPlayingList.Close();
+    }
+
+    clearAllBrowseModes(): void {
+        const paddedPlayerId = padDigit(this.Player.Id);
+        SystemVars.Write("SelectModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
+        SystemVars.Write("PlayModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
+        SystemVars.Write("AddNextModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
+        SystemVars.Write("AddEndModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
+        SystemVars.Write("FavoritesModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
+    }
+
+    applyBrowseMode(mode: number): void {
+        this.clearAllBrowseModes();
+
+        const paddedPlayerId = padDigit(this.Player.Id);
+        let existingMode = parseInt(SystemVars.Read("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id), 10);
+        if (mode == 99) {
+            existingMode++;
+            if (existingMode > 4) existingMode = 0;
+            mode = existingMode;
+        }
+        switch (mode) {
+            case 0: //"select":
+                SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id, mode);
+                SystemVars.Write("SelectModeP" + paddedPlayerId + "%" + this.Remote.Id, true);
+                break;
+            case 1: //"play":
+                SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id, mode);
+                SystemVars.Write("PlayModeP" + paddedPlayerId + "%" + this.Remote.Id, true);
+                break;
+            case 2: //"addnext":
+                SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id, mode);
+                SystemVars.Write("AddNextModeP" + paddedPlayerId + "%" + this.Remote.Id, true);
+                break;
+            case 3: //"addend":
+                SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id, mode);
+                SystemVars.Write("AddEndModeP" + paddedPlayerId + "%" + this.Remote.Id, true);
+                break;
+            case 4: //"favorites":
+                SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + this.Remote.Id, mode);
+                SystemVars.Write("FavoritesModeP" + paddedPlayerId + "%" + this.Remote.Id, true);
+                break;
+        }
+    }
+
+    loadNewParentBrowseList(): void {
+        const paddedPlayerId = padDigit(this.Player.Id);
+        SystemVars.Write("BrowseListTitleP" + paddedPlayerId + "%" + this.Remote.Id, this.Player.ParentMenu.MenuTitle);
+        SystemVars.Write("BrowseListAtParentP" + paddedPlayerId + "%" + this.Remote.Id, true);
+        this.BrowseList.Open();
+        this.BrowseList.RemoveAll();
+
+        const newNames = this.Player.CustomMenuNewNames;
+
+        dbg('Adding ' + this.CurrentList.ListItems.length + ' items to browse list for Remote: ' + this.Remote.Id + ', Player: ' + this.Player.Id);
+        for (var i = 0; i < this.CurrentList.ListItems.length; i++) {
+            if (newNames.length > 0) {
+                this.CurrentList.ListItems[i].MenuTitle = newNames[i];
+            }
+            const title = this.CurrentList.ListItems[i].MenuTitle;
+            this.BrowseList.Insert(title);
+        }
+        this.BrowseList.SetIndexes(0, 0);
+        this.BrowseList.SetMarked(0);
+        this.BrowseList.Close();
+        dbg('Browse list now contains ' + this.BrowseList.Size + ' items');
     }
 }

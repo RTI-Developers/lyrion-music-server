@@ -25,15 +25,41 @@ class Server {
         this.Connection.UseHandleInCallbacks = true;
         this.Connection.OnConnectFunc = onConnect;
         this.Connection.OnDisconnectFunc = onDisconnect;
-        // this.Connection.OnConnectFailedFunc = OnConnectionFailed; // TODO: Handle fact that TCP object does not have OnConnectFailedFunc
 
         //Used when a new client id has been made[reconnected] will go out and get a list of all the players from the server
         this.StartUpTimer.UseHandleInCallbacks = true;
     }
 
+    sendJsonCommand(json: string, isRpc: boolean = false): void {
+        dbg('sendJsonCommand sending Command: ' + json + ' to Server: ' + this.Ip);
+        let command = "POST /cometd HTTP/1.1\r\n" +
+                      "Content-Length: " + json.length + "\r\n" +
+                      "Content-Type: application/json\r\n\r\n";
+
+        if (isRpc) {
+            command = "POST /jsonrpc.js HTTP/1.1\r\n" +
+                      "Content-Length: " + json.length + "\r\n\r\n";
+        }
+
+        command += json + "\r\n\r\n";
+
+        this.Connection.Write(command);
+
+        if (g_Print_Posts) {
+            System.Print("");
+            System.Print(g_DriverName + "  **Sending the following Command with http header to " + this.Ip + "****");
+            var test = command.split('\r\n');
+            for (let i = 0; i < test.length; i++) {
+                printMaxLineSize(test[i]);
+            }
+            System.Print(g_DriverName + "****End Post****");
+            System.Print("");
+        }
+    }
+
     handleConnection(): void {
         const json = '[{"channel":"/meta/handshake","version":"1.0","supportedConnectionTypes":["long-polling","streaming"]}]';
-        sendJsonCommand(json, this);
+        this.sendJsonCommand(json);
     }
 
     handleDisconnect(): void {
@@ -45,7 +71,7 @@ class Server {
 
     requestPlayerList(): void {
         const json = '[{"id":-1,"data":{"response":"/' + this.ClientId + '/slim/serverstatus","request":["",["serverstatus",0,999]]}' + ',"channel":"/slim/request"}]';
-        sendJsonCommand(json, this);
+        this.sendJsonCommand(json);
     }
 
     handleIncomingData(data: string): void {
@@ -68,7 +94,7 @@ class Server {
                 this.ConnectionIncomingData += lines[0];
             }
             else {
-                parseIncomingJson(lines[1].replace(/\n|\r/g, ""), this);
+                this.parseIncomingJson(lines[1].replace(/\n|\r/g, ""));
                 return;
             }
         }
@@ -110,14 +136,14 @@ class Server {
         if (processData.length == this.ConnectionContentSize) {
             this.ConnectionContentSize = 0;
             this.ConnectionIncomingData = "";
-            parseIncomingJson(processData, this);
+            this.parseIncomingJson(processData);
             return;
         }
         else if (processData.length > this.ConnectionContentSize && this.ConnectionContentSize > 0) {
             processData = processData.substring(0, this.ConnectionContentSize);
             this.ConnectionContentSize = 0;
             this.ConnectionIncomingData = "";
-            parseUndelimitedJson(processData, this);
+            this.parseUndelimitedJson(processData);
             return;
         }
 
@@ -162,7 +188,7 @@ class Server {
 
                             System.Print(g_DriverName + ` Found Favorites subfolder with name [${requestedSubfolder}], requesting contents.`);
 
-                            sendJsonCommand(json, this, true);
+                            this.sendJsonCommand(json, true);
                             return;
                         }
                     }
@@ -188,7 +214,7 @@ class Server {
                         const randomPlaylistId = playlistIds[randomPlaylistIndex];
                         System.Print(g_DriverName + ` Playing random playlist [${randomPlaylistId}].`);
                         const json = `{"id": "play_playlist", "method": "slim.request", "params": ["${playerId}", ["favorites", "playlist", "play", "item_id:${randomPlaylistId}"]]}`;
-                        sendJsonCommand(json, this, true);
+                        this.sendJsonCommand(json, true);
                         return;
                     }
 
@@ -202,7 +228,7 @@ class Server {
                 if (cleanJson.length > 10) {
                     this.ConnectionIncomingData = "";
                     this.ConnectionContentSize = 0;
-                    parseIncomingJson(cleanJson, this);
+                    this.parseIncomingJson(cleanJson);
                 }
             }
         }
@@ -214,6 +240,112 @@ class Server {
             else {
                 this.BufferCount++;
             }
+        }
+    }
+
+    private parseIncomingJson(data: string): void {
+        if (data == "[]") return;
+        const httpIndex = data.indexOf(']HTTP/');
+        if (httpIndex > -1) {
+            data = data.substring(0, httpIndex + 1);
+        }
+        if (g_Print_Incoming_Json) {
+            System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
+            printMaxLineSize(data);
+            System.Print(g_DriverName + "***** End Incoming JSON Data*******");
+        }
+
+        let incomingJson = getJson(data);
+        const nowPlayingJson = incomingJson;
+        if (incomingJson != false) {
+            if (incomingJson[1] != undefined) {
+                incomingJson = incomingJson[1];
+            }
+            else {
+                incomingJson = incomingJson[0];
+            }
+
+            if (incomingJson["data"] != undefined) {
+                if (incomingJson["data"]["item_loop"] != undefined) {
+                    parseMenu(incomingJson, this);
+                }
+                else if (incomingJson["data"]["players_loop"] != undefined) {
+                    this.ServerVersion = incomingJson["data"]["version"];
+                    let delay = 5000;
+                    for (let i = 0; i < incomingJson["data"]["players_loop"].length; i++) {
+                        const playerData = incomingJson["data"]["players_loop"][i];
+                        const playerName = playerData["name"];
+
+                        let player: Player | null = null;
+                        for (let i = 0; i < g_Players.length; i++) {
+                            if (g_Players[i].Name == playerName) {
+                                player = g_Players[i];
+                                break;
+                            }
+                        }
+
+                        if (!player) {
+                            dbg("Didn't find match for Player with name: " + playerName);
+                            continue;
+                        }
+
+                        player.MacAddress = playerData["playerid"].toLowerCase();
+                        player.Connected = playerData.connected;
+
+                        player.NowPlayingTimer.Stop();
+                        player.NowPlayingTimer.Start(onTimerSubscribeToPlayerStatus, delay);
+                        delay = delay + 1500;
+
+                        const paddedPlayerId = padDigit(player.Id);
+                        SystemVars.Write("ConnectedP" + paddedPlayerId, true);
+                        SystemVars.Write("NotConnectedP" + paddedPlayerId, false);
+
+                        const json = '[{"id":"' + player.Id + '_-1","data":{"response":"/' + this.ClientId + '/slim/request","request":["' + player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"menu:opml_generic","direct:1"]]}' + ',"channel":"/slim/request"}]';
+                        this.sendJsonCommand(json);
+                    }
+                }
+                else if (incomingJson["data"]["player_name"] != undefined) {
+                    for (let i = 0; i < nowPlayingJson.length; i++) {
+                        const statusData = nowPlayingJson[i];
+                        if (statusData["data"] == undefined) { continue; }
+                        let player: Player | null = null;
+                        for (let j = 0; j < this.Players.length; j++) {
+                            if (this.Players[j].Name == statusData["data"]["player_name"]) {
+                                player = this.Players[j];
+                                break;
+                            }
+                        }
+                        if (player) { player.applyStatusUpdate(statusData); }
+                    }
+                }
+            }
+            else {
+                if (incomingJson["clientId"] != undefined) {
+                    const clientId = incomingJson["clientId"];
+                    if (this.ClientId != clientId) {
+                        this.ClientId = clientId;
+                        const json = '[{"connectionType":"streaming","channel":"/meta/connect","clientId":"' + this.ClientId + '"}' + ',{"subscription":"/' + this.ClientId + '/**","channel":"/meta/subscribe","clientId":"' + this.ClientId + '"}]';
+                        this.sendJsonCommand(json);
+                        this.StartUpTimer.Start(onTimerGetPlayers, 2000);
+                    }
+                }
+            }
+        }
+        else {
+            System.Print("**********************Not JSON*********************************");
+            printMaxLineSize(data);
+            this.ConnectionIncomingData = "";
+            this.BufferCount = 0;
+            System.Print("**********************End Not JSON*********************************");
+        }
+    }
+
+    private parseUndelimitedJson(existingData: string): void {
+        const openCount = (existingData.match(/[[]{/g) || []).length;
+        const closeCount = (existingData.match(/}]/g) || []).length;
+        if (openCount != 0 && closeCount != 0 && openCount == closeCount) {
+            const json = existingData.substring(existingData.indexOf("[{"), existingData.lastIndexOf('}]') + 2);
+            this.parseIncomingJson(json);
         }
     }
 }

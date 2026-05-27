@@ -4,35 +4,11 @@ function loadRemotesParentList(player: Player): void {
 
         if (remotePlayer.Player == player) {
             remotePlayer.CurrentList.ListItems = player.ParentMenu.ListItems;
-            loadNewParentBrowseList(remotePlayer);
+            remotePlayer.loadNewParentBrowseList();
         }
     }
 }
 
-function loadNewParentBrowseList(remotePlayer: RemotePlayer): void {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-
-    //if there is a custom home menu for this player, then load it
-    SystemVars.Write("BrowseListTitleP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, remotePlayer.Player.ParentMenu.MenuTitle);
-    SystemVars.Write("BrowseListAtParentP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-    remotePlayer.BrowseList.Open();
-    remotePlayer.BrowseList.RemoveAll();
-
-    const newNames = remotePlayer.Player.CustomMenuNewNames;
-
-    dbg('Adding ' + remotePlayer.CurrentList.ListItems.length + ' items to browse list for Remote: ' + remotePlayer.Remote.Id + ', Player: ' + remotePlayer.Player.Id);
-    for (var i = 0; i < remotePlayer.CurrentList.ListItems.length; i++) {
-        if (newNames.length > 0) {
-            remotePlayer.CurrentList.ListItems[i].MenuTitle = newNames[i];
-        }
-        const title = remotePlayer.CurrentList.ListItems[i].MenuTitle;
-        remotePlayer.BrowseList.Insert(title);
-    }
-    remotePlayer.BrowseList.SetIndexes(0, 0);
-    remotePlayer.BrowseList.SetMarked(0);
-    remotePlayer.BrowseList.Close();
-    dbg('Browse list now contains ' + remotePlayer.BrowseList.Size + ' items');
-}
 
 //This should only be called on driver startup or when the driver reconnects to the servers
 function parseParentMenu(json: string, server: Server): void {
@@ -106,7 +82,7 @@ function parseParentMenu(json: string, server: Server): void {
     if (remotePlayer) {
         remotePlayer.CurrentList.ListItems = remotePlayer.Player.ParentMenu.ListItems;
         //Now check to see if there is a custom home menu for this player
-        loadNewParentBrowseList(remotePlayer);
+        remotePlayer.loadNewParentBrowseList();
     } else {
         //Now update All player menus that are using this server
         for (let i = 0; i < server.Players.length; i++) {
@@ -391,7 +367,7 @@ function parseSubMenu(json: string, server: Server): void {
 
         remotePlayer.Offset = itemsCollected;
         const toSend = ('[{"id": "' + json["id"] + '","data":{"response":"/' + server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress.toLowerCase() + '",[' + remotePlayer.BrowseListParentActionItems.GoCmd + ',' + remotePlayer.Offset + ',' + g_Max_Poll_Count + ',' + remotePlayer.BrowseListParentActionItems.GoParams + ']]}' + ',"channel":"/slim/request"}]');
-        sendJsonCommand(toSend, server);
+        server.sendJsonCommand(toSend);
     }
     else {
         //We have the entire list loaded
@@ -419,262 +395,4 @@ function getMenuDetails(menuItem: string, item: object): string {
     }
 
     return menuItem;
-}
-
-function clearAllBrowseModes(remotePlayer: RemotePlayer): void {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-    SystemVars.Write("SelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    SystemVars.Write("PlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    SystemVars.Write("AddNextModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    SystemVars.Write("AddEndModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    SystemVars.Write("FavoritesModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-}
-
-function setBrowseModeImpl(remotePlayer: RemotePlayer, mode: number): void {
-    clearAllBrowseModes(remotePlayer);
-
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-    let existingMode = parseInt(SystemVars.Read("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id), 10);
-    if (mode == 99) {
-        existingMode++;
-        if (existingMode > 4) existingMode = 0;
-        mode = existingMode;
-    }
-    switch (mode) {
-        case 0: //"select":
-            SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-            SystemVars.Write("SelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-        case 1: //"play":
-            SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-            SystemVars.Write("PlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-        case 2: //"addnext":
-            SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-            SystemVars.Write("AddNextModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-        case 3: //"addend":
-            SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-            SystemVars.Write("AddEndModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-        case 4: //"favorites":
-            SystemVars.Write("SelectModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-            SystemVars.Write("FavoritesModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-    }
-}
-
-function setPlaylistModeImpl(remotePlayer: RemotePlayer, mode: number): void {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-
-    if (mode == 99) {
-        var ExistingMode = parseInt(SystemVars.Read("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id), 10);
-        ExistingMode++;
-        if (ExistingMode > 1) { ExistingMode = 0; }
-        mode = ExistingMode;
-    }
-    SystemVars.Write("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-    switch (mode) {
-        case 0:
-            SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            SystemVars.Write("PlayListSelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            unselectNowPlayingItem(remotePlayer);
-            break;
-        case 1:
-            SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            SystemVars.Write("PlayListSelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-    }
-}
-
-function unselectNowPlayingItem(remotePlayer: RemotePlayer): void {
-    remotePlayer.PlayListChangeCommands = []; //Clear out any commands because we have canceled
-    remotePlayer.NowPlayingList.Open();
-    const lastItem = remotePlayer.LastPlayListSelectedItem;
-    remotePlayer.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + remotePlayer.Player.Playlist[lastItem].Title);
-    remotePlayer.NowPlayingList.Close();
-}
-
-function setShowMoreOptionsPopupImpl(remotePlayer: RemotePlayer, mode: string) {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-
-    if (mode == "99") {
-        let existingMode = SystemVars.Read("ShowingMoreOptionsBrowseP" + paddedPlayerId + "%" + remotePlayer.Remote.Id);
-        if (existingMode == true) { existingMode = "false"; }
-        else { existingMode = "true"; }
-        mode = existingMode;
-    }
-    switch (mode) {
-        case "true":
-            SystemVars.Write("ShowingMoreOptionsBrowseP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-        case "false":
-            SystemVars.Write("ShowingMoreOptionsBrowseP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            break;
-    }
-}
-
-function getPlayerStatusImpl(remotePlayer: RemotePlayer): void {
-    const json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
-    sendJsonCommand(json, remotePlayer.Player.Server);
-}
-
-function browseSelectionActionImpl(remotePlayer: RemotePlayer, mode: string, index: number) {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-    const command = remotePlayer.CurrentList.ListItems[index].Actions[0].GoCmd;
-    const params = remotePlayer.CurrentList.ListItems[index].Actions[0].GoParams;
-    remotePlayer.CurrentList.Top = index;
-
-    //This shouldn't be possible but incase it does show up, just bump up to the previous browselist
-    if (command.indexOf("jiveblankcommand") > -1) {
-        browseBackImpl(remotePlayer);
-        return;
-    }
-
-    if (params.indexOf("__TAGGEDINPUT__") > -1) {
-        remotePlayer.CurrentList.Selected = index;
-        SystemVars.Write("ShowingKeyboardP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-        //Now check remote to see if it has a page macro for a keyboard
-        if (remotePlayer.KeyboardPageMacro > 0) {
-            System.RunSystemMacro(remotePlayer.KeyboardPageMacro);
-        }
-        return;
-    }
-    else {
-        SystemVars.Write("ShowingKeyboardP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    }
-
-    if (mode != "Select") {
-        if (remotePlayer.CurrentList.ListItems[index].FavoritesUrl.length > 0) {
-            //Save this URL to the players URL setting that can be used to save a default station at start up
-            remotePlayer.Player.NowPlayingUrl = remotePlayer.CurrentList.ListItems[index].FavoritesUrl;
-        }
-
-        let json = "";
-        let commands = "";
-        let params = "";
-        if (mode == "Favorite") {
-            if (SystemVars.Read("BrowseListTitleP" + paddedPlayerId + "%" + remotePlayer.Remote.Id).toLowerCase() == "favorites") {
-                const itemId = getItemIdValue(remotePlayer.CurrentList.ListItems[index].Actions[0].Params);
-                //System.Print("Delete Favorite Item_ID=" + Item_ID);
-                json = '[{"id": "' + paddedPlayerId + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["favorites","delete","title:' + remotePlayer.CurrentList.ListItems[index].FavoritesTitle + '","url:' + remotePlayer.CurrentList.ListItems[index].FavoritesUrl + '",' + itemId + ',"useContextMenu:1","type:audio"' + ']]}' + ',"channel":"/slim/request"}]';
-                remotePlayer.BrowseList.Open();
-                remotePlayer.BrowseList.RemoveAt(index);
-                remotePlayer.BrowseList.Close();
-                setBrowseModeImpl(remotePlayer, 0);
-            }
-            else {
-                json = '[{"id": "' + paddedPlayerId + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["favorites","add","title:' + remotePlayer.CurrentList.ListItems[index].FavoritesTitle + '","url:' + remotePlayer.CurrentList.ListItems[index].FavoritesUrl + '"]]}' + ',"channel":"/slim/request"}]';
-
-            }
-
-            json = json.replace(/\//g, "\\/");
-            sendJsonCommand(json, remotePlayer.Player.Server);
-            return;
-        }
-        else if (mode == "Play") {
-            if (remotePlayer.CurrentList.ListItems[index].Actions[0].PlayCmd.length > 0) {
-                commands = remotePlayer.CurrentList.ListItems[index].Actions[0].PlayCmd;
-                params = remotePlayer.CurrentList.ListItems[index].Actions[0].PlayParams;
-            }
-            else {
-                commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].PlayCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].PlayParams;
-                if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
-                }
-            }
-        }
-        else if (mode == "AddEnd") {
-            if (remotePlayer.CurrentList.ListItems[index].Actions[0].AddCmd.length > 0) {
-                commands = remotePlayer.CurrentList.ListItems[index].Actions[0].AddCmd;
-                params = remotePlayer.CurrentList.ListItems[index].Actions[0].AddParams;
-            }
-            else {
-                commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddParams;
-                if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
-                }
-            }
-        }
-        else if (mode == "AddNext") {
-            if (remotePlayer.CurrentList.ListItems[index].Actions[0].AddHoldCmd.length > 0) {
-                commands = remotePlayer.CurrentList.ListItems[index].Actions[0].AddHoldCmd;
-                params = remotePlayer.CurrentList.ListItems[index].Actions[0].AddHoldParams;
-            }
-            else {
-                commands = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddHoldCmd;
-                params = remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel].AddHoldParams;
-
-                if (remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams.length > 0) {
-                    params += ',' + remotePlayer.CurrentList.ListItems[index].Actions[0].CommonParams;
-                }
-            }
-        }
-        json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",[' + commands + ',' + params + ']]}' + ',"channel":"/slim/request"}]';
-        json = json.replace(/\//g, "\\/");
-        sendJsonCommand(json, remotePlayer.Player.Server);
-    }
-    else {
-        remotePlayer.Offset = 0;
-        remotePlayer.BrowseListSelect(index);
-        setBrowseModeImpl(remotePlayer, 0);
-    }
-}
-
-function browseBackImpl(remotePlayer: RemotePlayer): void {
-    setBrowseModeImpl(remotePlayer, 0);
-    remotePlayer.ListBack();
-}
-
-function jumpToBrowseLocationImpl(remotePlayer: RemotePlayer, service: string): void {
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-
-    SystemVars.Write("MoreOptionsAvailableP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-    SystemVars.Write("MoreOptionsNotAvailableP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-    SystemVars.Write("ShowingMoreOptionsBrowseP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-
-    setBrowseModeImpl(remotePlayer, 0);
-
-    //Clear the history and reload the parent menu for the player
-    remotePlayer.ListLevel = 0;
-    remotePlayer.History = [];
-
-    //Now Push the parent for this player
-    remotePlayer.CurrentList.ListItems = remotePlayer.Player.ParentMenu.ListItems;
-    remotePlayer.ListLevel = 1;
-
-    let isRpc = false;
-    let json = "";
-    switch (service) {
-        case "artists":
-        case "albums":
-        case "years":
-        case "genres":
-        case "playlists":
-        case "mediafolder":
-        case "musicfolder":
-        case "bmf":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:' + service + '"]]}' + ',"channel":"/slim/request"}]';
-            break;
-        case "myMusic":
-        case "home":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["menu","items",0,' + g_Max_Poll_Count + ',"direct:1"]]}' + ',"channel":"/slim/request"}]';
-            break;
-        case "new":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["browselibrary", "items", 0,' + g_Max_Poll_Count + ', "sort:new","mode:albums"]]}' + ',"channel":"/slim/request"}]';
-            isRpc = true;
-            break;
-        case "radios":
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["radios", 0,' + g_Max_Poll_Count + ', "menu:radio"]]}' + ',"channel":"/slim/request"}]';
-            break;
-        default:
-            json = '[{"id": "' + remotePlayer.Player.Id + "_" + remotePlayer.Remote.Id + '","data":{"response":"/' + remotePlayer.Player.Server.ClientId + '/slim/request","request":["' + remotePlayer.Player.MacAddress + '",["' + service + '","items",0,' + g_Max_Poll_Count + ',"menu:' + service + '"]]}' + ',"channel":"/slim/request"}]';
-            break;
-    }
-
-    remotePlayer.Player.Server.ConnectionIncomingData = "";
-
-    sendJsonCommand(json, remotePlayer.Player.Server, isRpc);
 }

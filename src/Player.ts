@@ -64,7 +64,10 @@ class Player {
     AvailablePlayers: object[] = []; //This will hold the player names of all available players
     SyncedPlayers: Player[] = [];
 
-    constructor(id: number, onProgressTick: (handle: number) => void) {
+    constructor(
+        id: number,
+        onProgressTick: (handle: number) => void
+    ) {
         let paddedId = padDigit(id);
 
         this._onProgressTick = onProgressTick;
@@ -72,7 +75,7 @@ class Player {
         this.Id = id;
         this.Name = Config.Get("NameP" + paddedId);
         this.ShouldHideMySqueezebox = (Config.Get("Favorites_Hide_MySqueeze_P" + paddedId) == "true");
-        this.ShouldHideMySqueezebox = (Config.Get("SkipFirstPandoraMenuP" + paddedId) == "true");
+        this.ShouldSkipFirstPandoraMenu = (Config.Get("SkipFirstPandoraMenuP" + paddedId) == "true");
         this.UseCustomParentMenu = (Config.Get("Use_Custom_Parent_Menu_P" + paddedId) == "true");
 
         if (this.UseCustomParentMenu) {
@@ -317,7 +320,7 @@ class Player {
 
                 if (this.Playlist.length < this.PlaylistCount) {
                     var paginationJson = '[{"id": "' + statusData["id"] + '","data":{"response":"\/' + this.Server.ClientId + '\/slim\/request","request":["' + this.MacAddress + '",["status",' + lastPlaylistItemIndex + ',25,"tags:uBjJKlaxdecNoptyw"]]}' + ',"channel":"\/slim\/request"}]';
-                    sendJsonCommand(paginationJson, this.Server);
+                    this.Server.sendJsonCommand(paginationJson);
                 }
             }
         }
@@ -532,6 +535,6 @@ class Player {
 
     subscribeToStatus(): void {
         const json = '[{"id":-1,"data":{"response":"/' + this.Server.ClientId + '/slim/playerstatus/' + this.MacAddress + '","request":["' + this.MacAddress + '",["status","0",' + g_Max_Now_Playing_List_Size + ',"tags:uBJjdKlaAxcNory","subscribe:60"]]}' + ',"channel":"/slim/subscribe"}]';
-        sendJsonCommand(json, this.Server);
+        this.Server.sendJsonCommand(json);
     }
 }
