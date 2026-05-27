@@ -1,35 +1,35 @@
 class RemotePlayer {
-	Remote: Remote;
-    Player: Player;
+	public readonly Remote: Remote;
+    public readonly Player: Player;
 
-	PlayListSelectedItem: number = 0;
-	LastPlayListSelectedItem: number = 0;
-	PlaylistItemSelected: boolean = false;
-	PlayListItemOrigLocation: number = -1;
-	PlayListItemNewLocation: number = -1;
+	private PlayListSelectedItem: number = 0;
+	public LastPlayListSelectedItem: number = 0;
+	public PlaylistItemSelected: boolean = false;
+	public PlayListItemOrigLocation: number = -1;
+	public PlayListItemNewLocation: number = -1;
 
-	PlayListChangeCommands: object[] = [];
+	public PlayListChangeCommands: object[] = [];
 
-    BrowseList: SystemVarsList<BrowseListItem | string>;
+    public readonly BrowseList: SystemVarsList<BrowseListItem | string>;
 
-	NowPlayingList: SystemVarsList<string>;
+	public readonly NowPlayingList: SystemVarsList<string>;
 
-	CurrentList: BrowseListItem = getEmptyBrowseListItem();
-	CurrentActionsList: ActionItems = getEmptyActionItems();
+	public CurrentList: BrowseListItem = getEmptyBrowseListItem();
+	public readonly CurrentActionsList: ActionItems = getEmptyActionItems();
 
-    BrowseListParentActionItems: ActionItems = getEmptyActionItems();
-    BrowseListRequestCorrelation: number = 0;
+    public BrowseListParentActionItems: ActionItems = getEmptyActionItems();
+    public BrowseListRequestCorrelation: number = 0;
 
-	ListLevel: number = 0;
+	public ListLevel: number = 0;
 
-    KeyboardData: string = "";
-    KeyboardLayout: number = 0;
-    BrowselistPageMacro: number = 0;
-    KeyboardPageMacro: number = 0;
+    public KeyboardData: string = "";
+    public KeyboardLayout: number = 0;
+    public BrowselistPageMacro: number = 0;
+    public KeyboardPageMacro: number = 0;
 
-    Offset: number = 0;
+    public Offset: number = 0;
 
-    History: BrowseListItem[] = [];
+    public History: BrowseListItem[] = [];
 
     constructor(remote: Remote, player: Player) {
         this.Remote = remote;
@@ -39,11 +39,11 @@ class RemotePlayer {
         this.BrowseList = new SystemVarsList("BrowseListP" + padDigit(player.Id) + "%" + remote.Id);
     }
 
-    ClearCurrentList() {
+    private ClearCurrentList() {
         this.CurrentList = getEmptyBrowseListItem();
     }
     
-    BrowseListSelect(index: number): void {
+    public BrowseListSelect(index: number): void {
         dbg('List Select: index ' + index);
         const paddedPlayerId = padDigit(this.Player.Id);
 
@@ -101,7 +101,7 @@ class RemotePlayer {
         this.Player.Server.sendJsonCommand(json);
     }
 
-    ListBack(): void {
+    public ListBack(): void {
         if (this.History.length > 0) {
             const paddedPlayerId = padDigit(this.Player.Id);
 
@@ -134,26 +134,26 @@ class RemotePlayer {
         }
     }
 
-    ListAppend(listItem: BrowseListItem): void {
+    public ListAppend(listItem: BrowseListItem): void {
         this.BrowseList.Insert(listItem.MenuTitle);
         this.CurrentList.ListItems.push(listItem);    
     }
 
-    ListRemoveAll(): void {
+    private ListRemoveAll(): void {
         this.BrowseList.RemoveAll();
         this.CurrentList.ListItems = [];    
     }
 
-    PushHistory(): void {
+    private PushHistory(): void {
         this.History.push(this.CurrentList);
         this.ClearCurrentList()
     }
 
-    SetNewBrowseListRequestCorrelation(): void {
+    public SetNewBrowseListRequestCorrelation(): void {
         this.BrowseListRequestCorrelation = Math.floor(Math.random() * 10000);
     }
 
-    unselectNowPlayingItem(): void {
+    public unselectNowPlayingItem(): void {
         this.PlayListChangeCommands = [];
         this.NowPlayingList.Open();
         const lastItem = this.LastPlayListSelectedItem;
@@ -161,7 +161,7 @@ class RemotePlayer {
         this.NowPlayingList.Close();
     }
 
-    clearAllBrowseModes(): void {
+    private clearAllBrowseModes(): void {
         const paddedPlayerId = padDigit(this.Player.Id);
         SystemVars.Write("SelectModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
         SystemVars.Write("PlayModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
@@ -170,7 +170,7 @@ class RemotePlayer {
         SystemVars.Write("FavoritesModeP" + paddedPlayerId + "%" + this.Remote.Id, false);
     }
 
-    applyBrowseMode(mode: number): void {
+    public applyBrowseMode(mode: number): void {
         this.clearAllBrowseModes();
 
         const paddedPlayerId = padDigit(this.Player.Id);
@@ -204,7 +204,7 @@ class RemotePlayer {
         }
     }
 
-    loadNewParentBrowseList(): void {
+    public loadNewParentBrowseList(): void {
         const paddedPlayerId = padDigit(this.Player.Id);
         SystemVars.Write("BrowseListTitleP" + paddedPlayerId + "%" + this.Remote.Id, this.Player.ParentMenu.MenuTitle);
         SystemVars.Write("BrowseListAtParentP" + paddedPlayerId + "%" + this.Remote.Id, true);

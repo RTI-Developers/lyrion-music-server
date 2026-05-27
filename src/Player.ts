@@ -1,67 +1,60 @@
 class Player {
-    private readonly _onProgressTick: (handle: number) => void;
+    private readonly onProgressTick: (handle: number) => void;
 
-    Id: number;
-	Name: string;
-    MacAddress: string;
-    ParentMenu: BrowseListItem;
-    Connected: boolean = false;
-    PoweredOn: boolean = false;
-    SyncMaster: boolean = false;
-    SyncSlave: boolean = false;
-    UseCustomParentMenu: boolean;
-    CustomMenuNames: string[] = [];
-    CustomMenuNewNames: string[] = [];
-    ShouldHideMySqueezebox: boolean;
-    ShouldSkipFirstPandoraMenu: boolean;
-    Server: Server;
-    CustomParentMenu: BrowseListItem;
-
-    Mode: string = "";
-    Progress: number = 0;
-    ProgressBar: number = 0;
-    Remaining: number = 0;
-    Duration: number = 0;
-    Volume: number = 0;
-    Muted: boolean = false;
-    NowPlayingUrl: string = "";
-
-    CanSeek: boolean = false;
-
-    Repeat: boolean = false;
-    RepeatType: number = 0; //0 = Off,  1= Repeat Song, 2= Repeat after end
-    Shuffle: boolean = false;
-    ShuffleType: number = 0;
-
-    Genre: string = "";
-    Title: string = "";
-    Album: string = "";
-    Artist: string = "";
-    StationName: string = "";
-
-    SongID: number = 0;
-    NowPlayingCoverArt: string = "";
-
-    Year: number = 0;
-    BitRate: string = "";
-    Type: string = "";
-
-    IsPlayingPandora: boolean = false;
-    HasPandoraThumbsUp: boolean = false;
-
-    NowPlayingTimer: Timer;
-    Playlist: PlaylistItem[] = [];
-    PlaylistCurrentIndex: number = 0;
-    PlaylistLastCurrentIndex: number = 0;
-    PlaylistTimestamp: number = 0;
-    PlaylistReset: boolean = false;
-    PlaylistCount: number = 0;
-
-    IsSynced: boolean = false;
-    IsSyncMaster: boolean = false;
-    IsSyncSlave: boolean = false;
-    AvailablePlayers: object[] = []; //This will hold the player names of all available players
-    SyncedPlayers: Player[] = [];
+    private Album: string = "";
+    private Artist: string = "";
+    private AvailablePlayers: object[] = []; //This will hold the player names of all available players
+    private BitRate: string = "";
+    private Genre: string = "";
+    private HasPandoraThumbsUp: boolean = false;
+    private IsPlayingPandora: boolean = false;
+    private IsSyncMaster: boolean = false;
+    private IsSyncSlave: boolean = false;
+    private Mode: string = "";
+    private Muted: boolean = false;
+    private NowPlayingCoverArt: string = "";
+    private PlaylistCount: number = 0;
+    private PlaylistCurrentIndex: number = 0;
+    private PlaylistLastCurrentIndex: number = 0;
+    private PlaylistReset: boolean = false;
+    private PlaylistTimestamp: number = 0;
+    private Repeat: boolean = false;
+    private RepeatType: number = 0; //0 = Off,  1= Repeat Song, 2= Repeat after end
+    private Shuffle: boolean = false;
+    private ShuffleType: number = 0;
+    private SongID: number = 0;
+    private StationName: string = "";
+    private SyncedPlayers: Player[] = [];
+    private SyncMaster: boolean = false;
+    private Title: string = "";
+    private Type: string = "";
+    private Year: number = 0;
+    
+    public readonly Id: number;
+    public readonly NowPlayingTimer: Timer;
+    
+    public CanSeek: boolean = false;
+    public Connected: boolean = false;
+    public CustomMenuNames: string[] = [];
+    public CustomMenuNewNames: string[] = [];
+    public CustomParentMenu: BrowseListItem;
+    public Duration: number = 0;
+    public IsSynced: boolean = false;
+    public MacAddress: string;
+    public Name: string;
+    public NowPlayingUrl: string = "";
+    public ParentMenu: BrowseListItem;
+    public Playlist: PlaylistItem[] = [];
+    public Progress: number = 0;
+    public ProgressBar: number = 0;
+    public PoweredOn: boolean = false;
+    public Remaining: number = 0;
+    public Server: Server;
+    public ShouldHideMySqueezebox: boolean;
+    public ShouldSkipFirstPandoraMenu: boolean;
+    public SyncSlave: boolean = false;
+    public UseCustomParentMenu: boolean;
+    public Volume: number = 0;
 
     constructor(
         id: number,
@@ -69,7 +62,7 @@ class Player {
     ) {
         let paddedId = padDigit(id);
 
-        this._onProgressTick = onProgressTick;
+        this.onProgressTick = onProgressTick;
 
         this.Id = id;
         this.Name = Config.Get("NameP" + paddedId);
@@ -88,7 +81,7 @@ class Player {
         this.UpdateAssociatedVariables();
     }
 
-    UpdateAssociatedVariables(): void {
+    public UpdateAssociatedVariables(): void {
         const paddedId = padDigit(this.Id);
         SystemVars.Write("NameP" + paddedId, this.Name);
         SystemVars.Write("ConnectedP" + paddedId, this.Connected);
@@ -99,7 +92,7 @@ class Player {
         SystemVars.Write("SyncSlaveP" + paddedId, this.SyncSlave);
     }
 
-    applyStatusUpdate(info: LyrionStatusData): void {
+    public applyStatusUpdate(info: LyrionStatusData): void {
         const paddedPlayerId = padDigit(this.Id);
         let updateVars = false;
 
@@ -127,7 +120,7 @@ class Player {
 
         if (info.mode == "play") {
             if (this.NowPlayingTimer.State == 0) {
-                this.NowPlayingTimer.Start(this._onProgressTick, 1000);
+                this.NowPlayingTimer.Start(this.onProgressTick, 1000);
             }
         } else {
             this.NowPlayingTimer.Stop();
@@ -401,7 +394,7 @@ class Player {
         }
     }
 
-    updateVariables(): void {
+    public updateVariables(): void {
         var paddedPlayerId = padDigit(this.Id);
 
         SystemVars.Write("MACP" + paddedPlayerId, this.MacAddress);
@@ -462,7 +455,7 @@ class Player {
         SystemVars.Write("CurrentCoverURLP" + paddedPlayerId, this.NowPlayingCoverArt, "IMGURL", "ForcePropagate");
     }
 
-    updateProgressVariables(): void {
+    public updateProgressVariables(): void {
         var paddedPlayerId = padDigit(this.Id);
         SystemVars.Write("ProgressP" + paddedPlayerId, toTimeString(this.Progress));
         if (this.Duration > 0) {
@@ -479,7 +472,7 @@ class Player {
         }
     }
 
-    tickProgress(): void {
+    public tickProgress(): void {
         if (this.Mode == "play") {
             this.Progress++;
             if (this.Duration > 0) {
@@ -491,11 +484,11 @@ class Player {
                 this.Remaining = 0;
             }
             this.updateProgressVariables();
-            this.NowPlayingTimer.Start(this._onProgressTick, 1000);
+            this.NowPlayingTimer.Start(this.onProgressTick, 1000);
         }
     }
 
-    subscribeToStatus(): void {
+    public subscribeToStatus(): void {
         const json = buildSlimSubscribeJson(this.Id, undefined, this.Server.ClientId, "slim/playerstatus/" + this.MacAddress, this.MacAddress, [LyrionCmd.Status, "0", g_Max_Now_Playing_List_Size, g_Status_Tags, "subscribe:60"]);
         this.Server.sendJsonCommand(json);
     }

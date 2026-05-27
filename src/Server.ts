@@ -1,14 +1,16 @@
 class Server {
-	Connection: TCP;
-    ClientId: string = "";
-	Players: Player[] = [];
-    Ip: string;
-    Port: number;
-    ServerVersion: string = "";
-    private _rawBuffer: string = "";
-    private _bodyBytesExpected: number = 0;
-    Connected: boolean = false;
-    StartUpTimer: Timer = new Timer();
+    private bodyBytesExpected: number = 0;
+    private connected: boolean = false;
+    private rawBuffer: string = "";
+    private serverVersion: string = "";
+
+    public readonly Connection: TCP;
+    public readonly StartUpTimer: Timer = new Timer();
+
+    public ClientId: string = "";
+	public Players: Player[] = [];
+    public readonly Ip: string;
+    public readonly Port: number;
 
     constructor(
         ip: string,
@@ -29,7 +31,7 @@ class Server {
         this.StartUpTimer.UseHandleInCallbacks = true;
     }
 
-    sendJsonCommand(json: string, isRpc: boolean = false): void {
+    public sendJsonCommand(json: string, isRpc: boolean = false): void {
         dbg('sendJsonCommand sending Command: ' + json + ' to Server: ' + this.Ip);
         let command = "POST /cometd HTTP/1.1\r\n" +
                       "Content-Length: " + json.length + "\r\n" +
@@ -56,13 +58,13 @@ class Server {
         }
     }
 
-    handleConnection(): void {
+    public handleConnection(): void {
         this._resetParserState();
         const request: LyrionHandshakeRequest = { channel: "/meta/handshake", version: "1.0", supportedConnectionTypes: ["long-polling", "streaming"] };
         this.sendJsonCommand(JSON.stringify([request]));
     }
 
-    handleDisconnect(): void {
+    public handleDisconnect(): void {
         for (let i = 0; i < this.Players.length; i++) {
             this.Players[i].Connected = false;
             this.Players[i].NowPlayingTimer.Stop();
@@ -70,7 +72,7 @@ class Server {
         }
     }
 
-    requestPlayerList(): void {
+    public requestPlayerList(): void {
         const json = buildSlimRequestJson(
             undefined,
             undefined,
@@ -81,70 +83,70 @@ class Server {
         this.sendJsonCommand(json);
     }
 
-    handleIncomingData(data: string): void {
+    public handleIncomingData(data: string): void {
         if (g_Print_Incoming_Raw) {
             System.Print("");
             System.Print(g_DriverName + "**********************OnCommRX Start************************************************************************************");
-            System.Print("CLBody=" + this._bodyBytesExpected + " Buffer=" + this._rawBuffer.length + " Incoming=" + data.length);
+            System.Print("CLBody=" + this.bodyBytesExpected + " Buffer=" + this.rawBuffer.length + " Incoming=" + data.length);
             printMaxLineSize(data);
             System.Print(g_DriverName + "**********************OnCommRX End*************************************************************************************");
             System.Print("");
         }
-        this._rawBuffer += data;
+        this.rawBuffer += data;
         this._processBuffer();
     }
 
     private _resetParserState(): void {
-        this._rawBuffer = "";
-        this._bodyBytesExpected = 0;
+        this.rawBuffer = "";
+        this.bodyBytesExpected = 0;
     }
 
     private _processBuffer(): void {
-        while (this._rawBuffer.length > 0) {
-            if (this._bodyBytesExpected > 0) {
+        while (this.rawBuffer.length > 0) {
+            if (this.bodyBytesExpected > 0) {
                 // Waiting for the rest of a Content-Length body
-                if (this._rawBuffer.length < this._bodyBytesExpected) return;
-                const body = this._rawBuffer.substring(0, this._bodyBytesExpected);
-                this._rawBuffer = this._rawBuffer.substring(this._bodyBytesExpected);
-                this._bodyBytesExpected = 0;
+                if (this.rawBuffer.length < this.bodyBytesExpected) return;
+                const body = this.rawBuffer.substring(0, this.bodyBytesExpected);
+                this.rawBuffer = this.rawBuffer.substring(this.bodyBytesExpected);
+                this.bodyBytesExpected = 0;
                 this._dispatchBody(body);
-            } else if (this._rawBuffer.indexOf('HTTP/') === 0) {
+            } else if (this.rawBuffer.indexOf('HTTP/') === 0) {
                 // New HTTP response — consume headers
-                const sep = this._rawBuffer.indexOf('\r\n\r\n');
+                const sep = this.rawBuffer.indexOf('\r\n\r\n');
                 if (sep === -1) return;
-                const headers = this._rawBuffer.substring(0, sep);
-                this._rawBuffer = this._rawBuffer.substring(sep + 4);
+                const headers = this.rawBuffer.substring(0, sep);
+                this.rawBuffer = this.rawBuffer.substring(sep + 4);
                 const clIdx = headers.indexOf('Content-Length:');
                 if (clIdx > -1) {
                     const lineEnd = headers.indexOf('\r\n', clIdx);
                     const clStr = lineEnd > -1
                         ? headers.substring(clIdx + 15, lineEnd)
                         : headers.substring(clIdx + 15);
-                    this._bodyBytesExpected = parseInt(clStr, 10);
+                    this.bodyBytesExpected = parseInt(clStr, 10);
                 }
                 // Transfer-Encoding: chunked — chunks follow and are parsed as chunk frames below
             } else {
                 // Chunk frame: <hex size>\r\n<data>\r\n
-                const crlfIdx = this._rawBuffer.indexOf('\r\n');
+                const crlfIdx = this.rawBuffer.indexOf('\r\n');
                 if (crlfIdx === -1) return;
-                const chunkSize = parseInt(this._rawBuffer.substring(0, crlfIdx), 16);
+                const chunkSize = parseInt(this.rawBuffer.substring(0, crlfIdx), 16);
                 if (isNaN(chunkSize) || chunkSize < 0) {
                     // Skip unrecognised line
-                    this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2);
+                    this.rawBuffer = this.rawBuffer.substring(crlfIdx + 2);
                     continue;
                 }
                 if (chunkSize === 0) {
                     // Terminal chunk — consume size line + trailing CRLF
-                    this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2);
-                    if (this._rawBuffer.indexOf('\r\n') === 0) {
-                        this._rawBuffer = this._rawBuffer.substring(2);
+                    this.rawBuffer = this.rawBuffer.substring(crlfIdx + 2);
+                    if (this.rawBuffer.indexOf('\r\n') === 0) {
+                        this.rawBuffer = this.rawBuffer.substring(2);
                     }
                     continue;
                 }
                 const needed = crlfIdx + 2 + chunkSize + 2;
-                if (this._rawBuffer.length < needed) return;
-                const chunkData = this._rawBuffer.substring(crlfIdx + 2, crlfIdx + 2 + chunkSize);
-                this._rawBuffer = this._rawBuffer.substring(crlfIdx + 2 + chunkSize + 2);
+                if (this.rawBuffer.length < needed) return;
+                const chunkData = this.rawBuffer.substring(crlfIdx + 2, crlfIdx + 2 + chunkSize);
+                this.rawBuffer = this.rawBuffer.substring(crlfIdx + 2 + chunkSize + 2);
                 this._dispatchBody(chunkData);
             }
         }
@@ -250,7 +252,7 @@ class Server {
             }
             else if (isLyrionServerStatus(incomingMsg.data)) {
                 const serverData = incomingMsg.data;
-                this.ServerVersion = serverData.version;
+                this.serverVersion = serverData.version;
                 let delay = 5000;
                 for (let i = 0; i < serverData.players_loop.length; i++) {
                     const playerData = serverData.players_loop[i];
