@@ -90,6 +90,19 @@
             "label": "Uglify Javascript",
             "type": "shell",
             "command": "npm run uglify",
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "npm test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Typescript Build"
+            ]
         }
     ]
 }

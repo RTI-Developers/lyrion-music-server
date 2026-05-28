@@ -7,3 +7,7 @@ configuration/SystemVariables.xml
 dist/
 node_modules/
 tools/
+
+# Test artifacts
+test/*.log
+test/test-env.ts
