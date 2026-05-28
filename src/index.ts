@@ -61,7 +61,6 @@ function Init(): void {
     // Populate Player List
     for (let playerId = 1; playerId <= g_Player_Count; playerId++) {
         const player = new Player(playerId, onTimerUpdatePlayerProgress);
-        player.Name = Config.Get('NameP' + padDigit(playerId));
         player.Server = g_Servers[0];
 
         dbg('Adding Player [' + playerId + ']');

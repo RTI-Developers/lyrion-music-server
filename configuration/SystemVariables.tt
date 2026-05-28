@@ -54,6 +54,7 @@ for (var i = 1; i <= playerCount; i++)
     <variable name="Remaining Time (Display)" sample="02:21" sysvar="RemainingP<#= paddedIndex #>" type="string" />
     <variable name="Bit Rate" sample="BitRate" sysvar="BitRateP<#= paddedIndex #>" type="string" />
     <variable name="Type" sample="Type" sysvar="TypeP<#= paddedIndex #>" type="string" />
+    <variable name="Year" sample="2024" sysvar="YearP<#= paddedIndex #>" type="integer" />
     <variable max="100" min="0" name="Player Volume Level" sysvar="VolumeLevelP<#= paddedIndex #>" type="integer" buttontag="Volume" />
     <variable name="Volume Muted" sysvar="VolumeMutedP<#= paddedIndex #>" type="boolean" buttontag="Mute" />
     <variable name="Repeat" sample="false" sysvar="RepeatP<#= paddedIndex #>" type="boolean" buttontag="Repeat On" />
@@ -125,12 +126,16 @@ for (var i = 1; i <= playerCount; i++)
 <#
 }
 #>
+  <category name="Server">
+    <variable name="Connected" sample="false" sysvar="ServerConnected" type="boolean" buttontag="Server Connected" />
+    <variable name="Version" sample="8.5.0" sysvar="ServerVersion" type="string" />
+  </category>
+
   <category name="Debug Modes">
     <variable name="Print RAW" sample="false" sysvar="PrintRAW" type="boolean" />
     <variable name="Print Post" sample="false" sysvar="PrintPost" type="boolean" />
     <variable name="Print JSON" sample="false" sysvar="PrintJSON" type="boolean" />
     <variable name="Print Menu" sample="false" sysvar="PrintMenu" type="boolean" />
   </category>
-
 
 </variables>

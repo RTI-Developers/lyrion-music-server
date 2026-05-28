@@ -2,7 +2,6 @@ class RemotePlayer {
 	public readonly Remote: Remote;
     public readonly Player: Player;
 
-	private PlayListSelectedItem: number = 0;
 	public LastPlayListSelectedItem: number = 0;
 	public PlaylistItemSelected: boolean = false;
 	public PlayListItemOrigLocation: number = -1;
@@ -151,14 +150,6 @@ class RemotePlayer {
 
     public SetNewBrowseListRequestCorrelation(): void {
         this.BrowseListRequestCorrelation = Math.floor(Math.random() * 10000);
-    }
-
-    public unselectNowPlayingItem(): void {
-        this.PlayListChangeCommands = [];
-        this.NowPlayingList.Open();
-        const lastItem = this.LastPlayListSelectedItem;
-        this.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + this.Player.Playlist[lastItem].Title);
-        this.NowPlayingList.Close();
     }
 
     private clearAllBrowseModes(): void {

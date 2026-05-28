@@ -15,7 +15,6 @@ class Player {
     private NowPlayingCoverArt: string = "";
     private PlaylistCount: number = 0;
     private PlaylistCurrentIndex: number = 0;
-    private PlaylistLastCurrentIndex: number = 0;
     private PlaylistReset: boolean = false;
     private PlaylistTimestamp: number = 0;
     private Repeat: boolean = false;
@@ -30,18 +29,20 @@ class Player {
     private Type: string = "";
     private Year: number = 0;
     
+    public readonly CustomMenuNames: string[] = [];
+    public readonly CustomMenuNewNames: string[] = [];
     public readonly Id: number;
-    public readonly NowPlayingTimer: Timer;
+    public readonly Name: string;
+    public readonly NowPlayingTimer: Timer = new Timer();
+    public readonly ShouldHideMySqueezebox: boolean;
+    public readonly ShouldSkipFirstPandoraMenu: boolean;
+    public readonly UseCustomParentMenu: boolean;
     
     public CanSeek: boolean = false;
     public Connected: boolean = false;
-    public CustomMenuNames: string[] = [];
-    public CustomMenuNewNames: string[] = [];
-    public CustomParentMenu: BrowseListItem;
     public Duration: number = 0;
     public IsSynced: boolean = false;
     public MacAddress: string;
-    public Name: string;
     public NowPlayingUrl: string = "";
     public ParentMenu: BrowseListItem;
     public Playlist: PlaylistItem[] = [];
@@ -50,10 +51,7 @@ class Player {
     public PoweredOn: boolean = false;
     public Remaining: number = 0;
     public Server: Server;
-    public ShouldHideMySqueezebox: boolean;
-    public ShouldSkipFirstPandoraMenu: boolean;
     public SyncSlave: boolean = false;
-    public UseCustomParentMenu: boolean;
     public Volume: number = 0;
 
     constructor(
@@ -75,7 +73,6 @@ class Player {
             this.CustomMenuNewNames = Config.Get("Custom_Menu_Names_P" + paddedId).split(":");
         }
 
-        this.NowPlayingTimer = new Timer();
         this.NowPlayingTimer.UseHandleInCallbacks = true;
 
         this.UpdateAssociatedVariables();
@@ -146,7 +143,6 @@ class Player {
             ? (info.can_seek == "1")
             : false;
 
-        this.PlaylistLastCurrentIndex = this.PlaylistCurrentIndex;
         this.PlaylistCurrentIndex = parseInt(info.playlist_cur_index, 10);
 
         const shuffleType = info["playlist shuffle"];
@@ -170,7 +166,6 @@ class Player {
         if (info.playlist_timestamp != this.PlaylistTimestamp) {
             this.Playlist = [];
             this.PlaylistReset = true;
-            this.PlaylistLastCurrentIndex = 0;
         } else {
             this.PlaylistReset = false;
         }
@@ -224,6 +219,7 @@ class Player {
                 this.Album = System.ConvertFromUTF8(nowPlayingInfo.Album);
                 this.NowPlayingCoverArt = nowPlayingInfo.ArtUrl;
                 this.Genre = nowPlayingInfo.Genre;
+                this.Year = parseInt(nowPlayingInfo.Year, 10) || 0;
                 this.BitRate = nowPlayingInfo.BitRate;
                 if (nowPlayingInfo.Type != undefined) {
                     this.IsPlayingPandora = (nowPlayingInfo.Type.indexOf("(Pandora)") > -1);
@@ -324,6 +320,7 @@ class Player {
         item.Type = entry.type ?? "";
         item.BitRate = entry.bitrate ?? "";
         item.Genre = entry.genre ?? "";
+        item.Year = entry.year?.toString() ?? "";
         return item;
     }
 
@@ -372,6 +369,7 @@ class Player {
             syncedPlayer.Album = this.Album;
             syncedPlayer.NowPlayingCoverArt = this.NowPlayingCoverArt;
             syncedPlayer.Genre = this.Genre;
+            syncedPlayer.Year = this.Year;
             syncedPlayer.BitRate = this.BitRate;
             syncedPlayer.CanSeek = this.CanSeek;
             syncedPlayer.Repeat = this.Repeat;
@@ -429,6 +427,7 @@ class Player {
         SystemVars.Write("PandoraThumbsUpP" + paddedPlayerId, this.HasPandoraThumbsUp);
         SystemVars.Write("TypeP" + paddedPlayerId, this.Type);
         SystemVars.Write("BitRateP" + paddedPlayerId, this.BitRate);
+        SystemVars.Write("YearP" + paddedPlayerId, this.Year);
         SystemVars.Write("SongTitleAvailableP" + paddedPlayerId, this.Title.length > 0);
         SystemVars.Write("AlbumTitleAvailableP" + paddedPlayerId, this.Album.length > 0);
         SystemVars.Write("ArtistTitleAvailableP" + paddedPlayerId, this.Artist.length > 0);

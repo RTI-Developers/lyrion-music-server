@@ -1,16 +1,14 @@
 class Server {
     private bodyBytesExpected: number = 0;
-    private connected: boolean = false;
     private rawBuffer: string = "";
-    private serverVersion: string = "";
 
     public readonly Connection: TCP;
+    public readonly Ip: string;
+	public readonly Players: Player[] = [];
+    public readonly Port: number;
     public readonly StartUpTimer: Timer = new Timer();
 
     public ClientId: string = "";
-	public Players: Player[] = [];
-    public readonly Ip: string;
-    public readonly Port: number;
 
     constructor(
         ip: string,
@@ -59,12 +57,14 @@ class Server {
     }
 
     public handleConnection(): void {
-        this._resetParserState();
+        this.resetParserState();
+        SystemVars.Write("ServerConnected", true);
         const request: LyrionHandshakeRequest = { channel: "/meta/handshake", version: "1.0", supportedConnectionTypes: ["long-polling", "streaming"] };
         this.sendJsonCommand(JSON.stringify([request]));
     }
 
     public handleDisconnect(): void {
+        SystemVars.Write("ServerConnected", false);
         for (let i = 0; i < this.Players.length; i++) {
             this.Players[i].Connected = false;
             this.Players[i].NowPlayingTimer.Stop();
@@ -93,15 +93,15 @@ class Server {
             System.Print("");
         }
         this.rawBuffer += data;
-        this._processBuffer();
+        this.processBuffer();
     }
 
-    private _resetParserState(): void {
+    private resetParserState(): void {
         this.rawBuffer = "";
         this.bodyBytesExpected = 0;
     }
 
-    private _processBuffer(): void {
+    private processBuffer(): void {
         while (this.rawBuffer.length > 0) {
             if (this.bodyBytesExpected > 0) {
                 // Waiting for the rest of a Content-Length body
@@ -109,7 +109,7 @@ class Server {
                 const body = this.rawBuffer.substring(0, this.bodyBytesExpected);
                 this.rawBuffer = this.rawBuffer.substring(this.bodyBytesExpected);
                 this.bodyBytesExpected = 0;
-                this._dispatchBody(body);
+                this.parseIncomingJson(body);
             } else if (this.rawBuffer.indexOf('HTTP/') === 0) {
                 // New HTTP response — consume headers
                 const sep = this.rawBuffer.indexOf('\r\n\r\n');
@@ -147,14 +147,18 @@ class Server {
                 if (this.rawBuffer.length < needed) return;
                 const chunkData = this.rawBuffer.substring(crlfIdx + 2, crlfIdx + 2 + chunkSize);
                 this.rawBuffer = this.rawBuffer.substring(crlfIdx + 2 + chunkSize + 2);
-                this._dispatchBody(chunkData);
+                this.parseIncomingJson(chunkData);
             }
         }
     }
 
-    private _dispatchBody(body: string): void {
-        if (body.indexOf('play_random_favorite') > 0) {
-            const cleanJson = body.substring(body.indexOf("{"), body.lastIndexOf('}') + 1);
+    private isCustomCommandResponse(data: string) : boolean {
+        return (data.indexOf('play_random_favorite') > 0);
+    }
+
+    private handleCustomCommandResponse(data: string): void {
+        if (data.indexOf('play_random_favorite') > 0) {
+            const cleanJson = data.substring(data.indexOf("{"), data.lastIndexOf('}') + 1);
 
             if (g_Print_Incoming_Json) {
                 System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
@@ -218,18 +222,17 @@ class Server {
 
                 System.Print(g_DriverName + ` Found no eligible playlists in Favorites [${requestedSubfolder}] subfolder.`);
             }
-            return;
         }
-
-        this.parseIncomingJson(body);
     }
 
     private parseIncomingJson(data: string): void {
         if (data == "[]") return;
-        const httpIndex = data.indexOf(']HTTP/');
-        if (httpIndex > -1) {
-            data = data.substring(0, httpIndex + 1);
+
+        if (this.isCustomCommandResponse(data)) {
+            this.handleCustomCommandResponse(data);
+            return;
         }
+
         if (g_Print_Incoming_Json) {
             System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
             printMaxLineSize(data);
@@ -252,7 +255,7 @@ class Server {
             }
             else if (isLyrionServerStatus(incomingMsg.data)) {
                 const serverData = incomingMsg.data;
-                this.serverVersion = serverData.version;
+                SystemVars.Write("ServerVersion", serverData.version);
                 let delay = 5000;
                 for (let i = 0; i < serverData.players_loop.length; i++) {
                     const playerData = serverData.players_loop[i];
@@ -321,5 +324,4 @@ class Server {
             }
         }
     }
-
 }

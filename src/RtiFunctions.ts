@@ -82,17 +82,18 @@ function setPlaylistMode(playerId: number, mode: number, remoteId: number): void
     const paddedPlayerId = padDigit(remotePlayer.Player.Id);
 
     if (mode == 99) {
-        var ExistingMode = parseInt(SystemVars.Read("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id), 10);
-        ExistingMode++;
-        if (ExistingMode > 1) { ExistingMode = 0; }
-        mode = ExistingMode;
+        var existingMode = parseInt(SystemVars.Read("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id), 10);
+        existingMode++;
+        if (existingMode > 1) { existingMode = 0; }
+        mode = existingMode;
     }
     SystemVars.Write("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
     switch (mode) {
         case 0:
             SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
             SystemVars.Write("PlayListSelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            remotePlayer.unselectNowPlayingItem();
+            remotePlayer.PlayListChangeCommands = [];
+            remotePlayer.PlaylistItemSelected = false;
             break;
         case 1:
             SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
@@ -500,22 +501,14 @@ function playListSelection(playerId: number, index: number, remoteId: number): v
     if (remotePlayer == null) { return; }
 
     const editMode = SystemVars.Read("PlayListSelectModeP" + padDigit(remotePlayer.Player.Id) + "%" + remotePlayer.Remote.Id);
-    const lastItem = remotePlayer.LastPlayListSelectedItem;
-    remotePlayer.NowPlayingList.Open();
     if (editMode == true) {
-        remotePlayer.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + remotePlayer.Player.Playlist[lastItem].Title);
         if (remotePlayer.PlaylistItemSelected == false) {
-            var NewItemTitle = remotePlayer.NowPlayingList.ReadAt(index);
-            remotePlayer.NowPlayingList.ModifyAt(index, " --- " + NewItemTitle + " --- ");
             remotePlayer.LastPlayListSelectedItem = index;
             remotePlayer.PlaylistItemSelected = true;
-        }
-        else {
+        } else {
             remotePlayer.PlaylistItemSelected = false;
         }
-    }
-    else {
-        remotePlayer.NowPlayingList.ModifyAt(lastItem, "(" + (lastItem + 1) + ") " + remotePlayer.Player.Playlist[lastItem].Title);
+    } else {
         const json = buildSlimRequestJson(
             remotePlayer.Player.Id,
             remotePlayer.Remote.Id,
@@ -525,7 +518,6 @@ function playListSelection(playerId: number, index: number, remoteId: number): v
             [LyrionCmd.Playlist, LyrionPlaylistCmd.Index, index]);
         remotePlayer.Player.Server.sendJsonCommand(json);
     }
-    remotePlayer.NowPlayingList.Close();
 }
 
 function adjustPlaylist(playerId: number, todo: string, remoteId: number): void {
@@ -556,7 +548,7 @@ function adjustPlaylist(playerId: number, todo: string, remoteId: number): void 
 
             remotePlayer.NowPlayingList.Open();
             if (todo == "moveup" || todo == "movedown") {
-                const title = " --- (##) " + remotePlayer.Player.Playlist[fromLocation].Title + " --- ";
+                const title = remotePlayer.Player.Playlist[fromLocation].Title;
                 remotePlayer.Player.Playlist = moveArrayItem(remotePlayer.Player.Playlist, fromLocation, newLocation);
                 remotePlayer.NowPlayingList.RemoveAt(fromLocation);
                 remotePlayer.NowPlayingList.InsertAt(newLocation, title);
