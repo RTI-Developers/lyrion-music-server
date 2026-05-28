@@ -76,32 +76,6 @@ function setBrowseMode(playerId: number, mode: number, remoteId: number): void {
     remotePlayer.applyBrowseMode(mode);
 }
 
-function setPlaylistMode(playerId: number, mode: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const paddedPlayerId = padDigit(remotePlayer.Player.Id);
-
-    if (mode == 99) {
-        var existingMode = parseInt(SystemVars.Read("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id), 10);
-        existingMode++;
-        if (existingMode > 1) { existingMode = 0; }
-        mode = existingMode;
-    }
-    SystemVars.Write("PlayListModeIntegerP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, mode);
-    switch (mode) {
-        case 0:
-            SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            SystemVars.Write("PlayListSelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            remotePlayer.PlayListChangeCommands = [];
-            remotePlayer.PlaylistItemSelected = false;
-            break;
-        case 1:
-            SystemVars.Write("PlayListPlayModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, false);
-            SystemVars.Write("PlayListSelectModeP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-            break;
-    }
-}
-
 function setShowMoreOptionsPopup(playerId: number, mode: string, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
@@ -144,13 +118,13 @@ function printHomeMenu(playerId: number, remoteId: number): void {
         var Title = remotePlayer.Player.ParentMenu.ListItems[i].MenuTitle;
         outputString += Title + ":";
     }
-    System.LogInfo(1, outputString.substring(0, outputString.length - 1));
+    g_logger.logInfo(outputString.substring(0, outputString.length - 1), LogInfoLevel.Low);
 }
 
 function printNowPlayingUrl(playerId: number, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-    System.LogInfo(1, remotePlayer.Player.Name + "  " + remotePlayer.Player.NowPlayingUrl);
+    g_logger.logInfo(remotePlayer.Player.Name + '  ' + remotePlayer.Player.NowPlayingUrl, LogInfoLevel.Low);
 }
 
 function playerPower(playerId: number, power: number, remoteId: number): void {
@@ -360,7 +334,7 @@ function syncListSelection(playerId: number, index: number, syncType: string, re
 }
 
 function browseSelectionAction(playerId: number, mode: string, index: number, remoteId: number) {
-    dbg('Browse Selection Action: playerId ' + playerId + ', mode ' + mode + ', RemoteID ' + remoteId);
+    g_logger.logInfo('Browse Selection Action: playerId ' + playerId + ', mode ' + mode + ', RemoteID ' + remoteId, LogInfoLevel.High, 'browseSelectionAction');
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
     const paddedPlayerId = padDigit(remotePlayer.Player.Id);
@@ -377,8 +351,8 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
     if (goParams.some(function(p) { return p.indexOf("__TAGGEDINPUT__") > -1; })) {
         remotePlayer.CurrentList.Selected = index;
         SystemVars.Write("ShowingKeyboardP" + paddedPlayerId + "%" + remotePlayer.Remote.Id, true);
-        if (remotePlayer.KeyboardPageMacro > 0) {
-            System.RunSystemMacro(remotePlayer.KeyboardPageMacro);
+        if (remotePlayer.Remote.KeyboardPageMacro) {
+            System.RunSystemMacro(remotePlayer.Remote.KeyboardPageMacro);
         }
         return;
     }
@@ -489,7 +463,7 @@ function browseSelectionAction(playerId: number, mode: string, index: number, re
 }
 
 function browseBack(playerId: number, remoteId: number): void {
-    dbg('Browse Back: playerId ' + playerId + ', RemoteID ' + remoteId);
+    g_logger.logInfo('Browse Back: playerId ' + playerId + ', RemoteID ' + remoteId, LogInfoLevel.High, 'browseBack');
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
     remotePlayer.applyBrowseMode(0);
@@ -499,98 +473,14 @@ function browseBack(playerId: number, remoteId: number): void {
 function playListSelection(playerId: number, index: number, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
-
-    const editMode = SystemVars.Read("PlayListSelectModeP" + padDigit(remotePlayer.Player.Id) + "%" + remotePlayer.Remote.Id);
-    if (editMode == true) {
-        if (remotePlayer.PlaylistItemSelected == false) {
-            remotePlayer.LastPlayListSelectedItem = index;
-            remotePlayer.PlaylistItemSelected = true;
-        } else {
-            remotePlayer.PlaylistItemSelected = false;
-        }
-    } else {
-        const json = buildSlimRequestJson(
-            remotePlayer.Player.Id,
-            remotePlayer.Remote.Id,
-            remotePlayer.Player.Server.ClientId,
-            g_Slim_Request,
-            remotePlayer.Player.MacAddress,
-            [LyrionCmd.Playlist, LyrionPlaylistCmd.Index, index]);
-        remotePlayer.Player.Server.sendJsonCommand(json);
-    }
-}
-
-function adjustPlaylist(playerId: number, todo: string, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-
-    const fromLocation = remotePlayer.LastPlayListSelectedItem;
-    let newLocation = fromLocation;
-    let command = "move";
-    switch (todo) {
-        case "moveup":
-        case "movedown":
-        case "delete":
-            if (todo == "movedown") {
-                newLocation++;
-                if (newLocation > remotePlayer.Player.Playlist.length - 1) {
-                    newLocation--;
-                }
-            }
-            else if (todo == "moveup") {
-                if (newLocation > 0) {
-                    newLocation--;
-                }
-            }
-            else if (todo == "delete") {
-                command = "delete";
-            }
-
-            remotePlayer.NowPlayingList.Open();
-            if (todo == "moveup" || todo == "movedown") {
-                const title = remotePlayer.Player.Playlist[fromLocation].Title;
-                remotePlayer.Player.Playlist = moveArrayItem(remotePlayer.Player.Playlist, fromLocation, newLocation);
-                remotePlayer.NowPlayingList.RemoveAt(fromLocation);
-                remotePlayer.NowPlayingList.InsertAt(newLocation, title);
-                remotePlayer.LastPlayListSelectedItem = newLocation;
-
-                let topWindow = newLocation - 1;
-                if (topWindow < 0) { topWindow = 0; }
-                remotePlayer.NowPlayingList.SetIndexes(newLocation, topWindow);
-            }
-            remotePlayer.NowPlayingList.Close();
-
-            let updated = false;
-            const itemIdItemID = remotePlayer.Player.Playlist[newLocation].Id;
-            remotePlayer.PlayListItemNewLocation = newLocation;
-            for (let i = 0; i < remotePlayer.PlayListChangeCommands.length; i++) {
-                if (remotePlayer.PlayListChangeCommands[i][0] == itemIdItemID) {
-                    remotePlayer.PlayListItemOrigLocation = remotePlayer.PlayListChangeCommands[i][1];
-                    remotePlayer.PlayListChangeCommands[i][2] = newLocation;
-                    remotePlayer.PlayListChangeCommands[i][3] = command;
-                    updated = true;
-                    break;
-                }
-            }
-            if (updated == false) {
-                remotePlayer.PlayListChangeCommands.push([itemIdItemID, fromLocation, newLocation, command]);
-            }
-            if (g_Debug == true) {
-                System.Print("");
-                System.Print("g_Remote_Info[RemoteID].PlayListChangeCommands.length=" + remotePlayer.PlayListChangeCommands.length);
-                for (let i = 0; i < remotePlayer.PlayListChangeCommands.length; i++) {
-                    System.Print("ItemID=" + remotePlayer.PlayListChangeCommands[i][0]);
-                    System.Print("OrigLocation=" + remotePlayer.PlayListChangeCommands[i][1]);
-                    System.Print("New Location=" + remotePlayer.PlayListChangeCommands[i][2]);
-                    System.Print("Command=" + remotePlayer.PlayListChangeCommands[i][3]);
-                }
-                System.Print("g_Remote_Info[RemoteID].LastPlayListSelectedItem=" + remotePlayer.LastPlayListSelectedItem);
-            }
-            break;
-
-        case "save":
-            break;
-    }
+    const json = buildSlimRequestJson(
+        remotePlayer.Player.Id,
+        remotePlayer.Remote.Id,
+        remotePlayer.Player.Server.ClientId,
+        g_Slim_Request,
+        remotePlayer.Player.MacAddress,
+        [LyrionCmd.Playlist, LyrionPlaylistCmd.Index, index]);
+    remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
 function jumpToBrowseLocation(playerId: number, service: string, remoteId: number): void {
@@ -767,67 +657,11 @@ function subscribeTest(playerId: number, remoteId: number): void {
 }
 
 function changeDebugMode(debugItem: string, todo: string): void {
-    switch (debugItem) {
-        case "JSON":
-            if (todo == "2") {
-                if (g_Print_Incoming_Json == true) {
-                    g_Print_Incoming_Json = false;
-                }
-                else {
-                    g_Print_Incoming_Json = true;
-                }
-            }
-            else {
-                g_Print_Incoming_Json = (todo == "1");
-            }
-            break;
-        case "RAW":
-            if (todo == "2") {
-                if (g_Print_Incoming_Raw == true) {
-                    g_Print_Incoming_Raw = false;
-                }
-                else {
-                    g_Print_Incoming_Raw = true;
-                }
-            }
-            else {
-                g_Print_Incoming_Raw = (todo == "1");
-            }
-            break;
-        case "POST":
-            if (todo == "2") {
-                if (g_Print_Posts == true) {
-                    g_Print_Posts = false;
-                }
-                else {
-                    g_Print_Posts = true;
-                }
-            }
-            else {
-                g_Print_Posts = (todo == "1");
-            }
-        case "MENU":
-            if (todo == "2") {
-                if (g_Print_Incoming_Menu == true) {
-                    g_Print_Incoming_Menu = false;
-                }
-                else {
-                    g_Print_Incoming_Menu = true;
-                }
-            }
-            else {
-                g_Print_Incoming_Menu = (todo == "1");
-            }
-            break;
-    }
-    printDebugModes();
+    g_logger.logInfo('changeDebugMode: debugItem=' + debugItem + ', todo=' + todo, LogInfoLevel.Low);
 }
 
 function printBuffer(_playerId: number, remoteId: number): void {
-    System.Print("**********************Parser State*********************************");
-    System.Print("**********************Requested By Remote " + remoteId + "********************************");
-    System.Print("HTTP parser buffer is internal (two-state machine).");
-    System.Print("**********************End Parser State*********************************");
+    g_logger.logInfo('printBuffer requested by remote ' + remoteId + ': HTTP parser buffer is internal (two-state machine).', LogInfoLevel.Low);
 }
 
 function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo: string, remoteId: number): void {
@@ -870,7 +704,7 @@ function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo:
 }
 
 function browseSelection(playerId: number, index: number, remoteId: number): void {
-    dbg('Browse Selection: PlayerId: ' + playerId + ', Index ' + index + ', RemoteId ' + remoteId);
+    g_logger.logInfo('Browse Selection: PlayerId: ' + playerId + ', Index ' + index + ', RemoteId ' + remoteId, LogInfoLevel.High, 'browseSelection');
 
     const paddedPlayerId = padDigit(playerId);
 

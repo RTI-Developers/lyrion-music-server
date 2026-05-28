@@ -7,20 +7,26 @@
     "lib": [],
     "module": "none",
     "strictNullChecks": true,
-    "ignoreDeprecations": "5.0"
+    "ignoreDeprecations": "5.0",
+    "typeRoots": ["./node_modules/@rti-developers", "./node_modules/@types"],
+    "types": ["sdk-types"]
   },
   "files": [
     "./src/json2.js",
-    "./src/GlobalHandlerMap.ts",
-    "./src/Utilities.ts",
-    "./src/Player.ts",
-    "./src/Remote.ts",
-    "./src/RemotePlayer.ts",
-    "./src/Server.ts",
-    "./src/Browse.ts",
+    "./node_modules/@rti-developers/sdk-utils/src/global-handle-map.ts",
+    "./node_modules/@rti-developers/sdk-utils/src/logger.ts",
+    "./src/utilities.ts",
+    "./src/player.ts",
+    "./src/remote.ts",
+    "./src/remote-player.ts",
+    "./src/server.ts",
+    "./src/browse.ts",
     "./src/Keyboard.ts",
-    "./src/RtiFunctions.ts",
-    "./src/index.ts",
+    "./src/rti-functions.ts",
+    "./src/index.ts"
   ],
-  "include": ["./src/typings/*.d.ts", "./src/typings/*.ts"]
+  "include": [
+    "./src/typings/lyrion.d.ts",
+    "./src/typings/lib/json2.d.ts"
+  ]
 }

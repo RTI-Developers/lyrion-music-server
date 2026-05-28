@@ -16,57 +16,52 @@ const g_Socket_Connections = [];
 const g_remotes: Remote[] = [];
 const g_Players: Player[] = [];
 const g_Servers: Server[] = [];
-const g_serverHandlerMap = new GlobalHandlerMap<Server>();
-const g_playerHandlerMap = new GlobalHandlerMap<Player>();
-
-
-let g_Debug = Config.Get("DebugTrace") == "true";
-let g_Print_Posts = Config.Get("DebugPrintPosts") == "true";
-let g_Print_Incoming_Json = Config.Get("DebugPrintIncoming") == "true";
-let g_Print_Incoming_Raw = Config.Get("DebugRAWIncoming") == "true";
-let g_Print_Incoming_Menu = Config.Get("DebugMenuIncoming") == "true";
+const g_serverHandleMap = new GlobalHandleMap<Server>();
+const g_playerHandleMap = new GlobalHandleMap<Player>();
 
 function Init(): void {
-    dbg('Init');
+    g_logger.logInfo('Init', LogInfoLevel.Low);
 
     // Populate Remote List
     g_remotes.push(new Remote(0));  // Virtual Remote for RTI Processor
 
     for (let i = 0; i < g_Remote_Ids.length; i++) {
-        const remote = new Remote(g_Remote_Ids[i]);
-        dbg('Adding Remote with Id: ' + remote.Id);
-        g_remotes.push(remote);
+        const remoteName = System.GetViewName(i);
+        let browselistPageMacro: number | undefined;
+        let keyboardPageMacro: number | undefined;
 
-        var remoteName = System.GetViewName(i);
         for (var customizedRemoteId = 1; customizedRemoteId <= g_Customized_Remote_Count; customizedRemoteId++) {
-            var customizedRemoteName = Config.Get("NameR" + customizedRemoteId);
-            if (customizedRemoteName == remoteName) {
-                dbg('Assigning configured remote macros');
-                var KeyboardMaroID = parseInt(Config.Get("KeyboardPageMR" + customizedRemoteId), 10);
-                var BrowseMacroID = parseInt(Config.Get("BrowsePageMR" + customizedRemoteId), 10);
-
-                if (BrowseMacroID > 0) { remote.BroweslistPageMacro = BrowseMacroID; }
-                if (KeyboardMaroID > 0) { remote.KeyboardPageMacro = KeyboardMaroID; }
+            if (Config.Get("NameR" + customizedRemoteId) == remoteName) {
+                g_logger.logInfo('Assigning configured remote macros for ' + remoteName, LogInfoLevel.High);
+                const browseId = parseInt(Config.Get("BrowsePageMR" + customizedRemoteId), 10);
+                const keyboardId = parseInt(Config.Get("KeyboardPageMR" + customizedRemoteId), 10);
+                if (browseId > 0) { browselistPageMacro = browseId; }
+                if (keyboardId > 0) { keyboardPageMacro = keyboardId; }
+                break;
             }
         }
+
+        const remote = new Remote(g_Remote_Ids[i], browselistPageMacro, keyboardPageMacro);
+        g_logger.logInfo('Adding Remote with Id: ' + remote.Id, LogInfoLevel.High);
+        g_remotes.push(remote);
     }
 
     // Populate Server List
-    dbg('Adding default server with Ip: ' + g_Default_Server_Ip + ' and Port: ' + g_Default_Server_Port);
-    const server = new Server(g_Default_Server_Ip, g_Default_Server_Port, onCommRx, onConnection, onDisconnect);
+    g_logger.logInfo('Adding default server with Ip: ' + g_Default_Server_Ip + ' and Port: ' + g_Default_Server_Port, LogInfoLevel.Low);
+    const server = new Server(g_Default_Server_Ip, g_Default_Server_Port, new Logger(g_DriverName + 'Server [' + g_Default_Server_Ip + ']', g_debug), onCommRx, onConnection, onDisconnect);
     g_Servers.push(server);
-    g_serverHandlerMap.register(server.Connection.Handle, server);
-    g_serverHandlerMap.register(server.StartUpTimer.Handle, server);
+    g_serverHandleMap.register(server.Connection.Handle, server);
+    g_serverHandleMap.register(server.StartUpTimer.Handle, server);
 
     // Populate Player List
     for (let playerId = 1; playerId <= g_Player_Count; playerId++) {
-        const player = new Player(playerId, onTimerUpdatePlayerProgress);
+        const player = new Player(playerId, new Logger(g_DriverName + 'Player [' + playerId + ']', g_debug), onTimerUpdatePlayerProgress, onPlaylistReady);
         player.Server = g_Servers[0];
 
-        dbg('Adding Player [' + playerId + ']');
+        g_logger.logInfo('Adding Player [' + playerId + ']', LogInfoLevel.High);
         g_Players.push(player);
         player.Server.Players.push(player);
-        g_playerHandlerMap.register(player.NowPlayingTimer.Handle, player);
+        g_playerHandleMap.register(player.NowPlayingTimer.Handle, player);
     }
 
     // Populate RemotePlayer List
@@ -74,8 +69,8 @@ function Init(): void {
         const remote = g_remotes[i];
         for (let j = 0; j < g_Players.length; j++) {
             const player = g_Players[j];
-            dbg('Adding RemotePlayer with RemoteId [' + remote.Id + '] and PlayerId [' + player.Id + ']');
-            const remotePlayer = new RemotePlayer(remote, player);
+            g_logger.logInfo('Adding RemotePlayer with RemoteId [' + remote.Id + '] and PlayerId [' + player.Id + ']', LogInfoLevel.High);
+            const remotePlayer = new RemotePlayer(remote, player, new Logger(g_DriverName + 'RemotePlayer [R' + remote.Id + ':P' + player.Id + ']', g_debug));
             g_RemotePlayers.push(remotePlayer);
             setKeyBoardLayoutImpl(remotePlayer, remotePlayer.KeyboardLayout);
         }
@@ -91,39 +86,53 @@ function Init(): void {
 
 }
 
-System.Print("Initializing " + g_DriverName + " version " + g_DriverVersion);
+const g_debug = Config.Get("DebugTrace") == "true";
+const g_logger = new Logger(g_DriverName, g_debug);
 
-printDebugModes();
+g_logger.logInfo('Initializing ' + g_DriverName + ' version ' + g_DriverVersion, LogInfoLevel.Low);
 Init();
 
 //#region RTI event handlers
 
 function onCommRx(data: string, handle: number): void {
-    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleIncomingData(data);
+    g_serverHandleMap.getMappedValueFromHandle(handle)?.handleIncomingData(data);
 }
 
 function onConnection(handle: number): void {
-    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleConnection();
+    g_serverHandleMap.getMappedValueFromHandle(handle)?.handleConnection();
 }
 
 function onConnectionFailed(handle: number): void {
-    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleDisconnect();
+    g_serverHandleMap.getMappedValueFromHandle(handle)?.handleDisconnect();
 }
 
 function onDisconnect(handle: number): void {
-    g_serverHandlerMap.getMappedValueFromHandle(handle)?.handleDisconnect();
+    g_serverHandleMap.getMappedValueFromHandle(handle)?.handleDisconnect();
 }
 
 function onTimerGetPlayers(handle: number): void {
-    g_serverHandlerMap.getMappedValueFromHandle(handle)?.requestPlayerList();
+    g_serverHandleMap.getMappedValueFromHandle(handle)?.requestPlayerList();
 }
 
 function onTimerSubscribeToPlayerStatus(handle: number): void {
-    g_playerHandlerMap.getMappedValueFromHandle(handle)?.subscribeToStatus();
+    g_playerHandleMap.getMappedValueFromHandle(handle)?.subscribeToStatus();
 }
 
 function onTimerUpdatePlayerProgress(handle: number): void {
-    g_playerHandlerMap.getMappedValueFromHandle(handle)?.tickProgress();
+    g_playerHandleMap.getMappedValueFromHandle(handle)?.tickProgress();
+}
+
+function onPlaylistReady(playerId: number, titles: string[]): void {
+    for (let i = 0; i < g_RemotePlayers.length; i++) {
+        const remotePlayer = g_RemotePlayers[i];
+        if (remotePlayer.Player.Id !== playerId) { continue; }
+        remotePlayer.NowPlayingList.Open();
+        remotePlayer.NowPlayingList.RemoveAll();
+        for (let j = 0; j < titles.length; j++) {
+            remotePlayer.NowPlayingList.Insert(titles[j]);
+        }
+        remotePlayer.NowPlayingList.Close();
+    }
 }
 
 //#endregion

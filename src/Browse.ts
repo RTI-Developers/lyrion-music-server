@@ -18,7 +18,7 @@ function parseParentMenu(msg: LyrionCometdMessage, server: Server): void {
     serverParent.MenuTitle = parentHomeTitle;
 
     const { playerId, remoteId } = parseRequestId(msg.id ?? "");
-    dbg('parseParentMenu playerId: ' + playerId + ' remoteId: ' + remoteId);
+    g_logger.logInfo('parseParentMenu playerId: ' + playerId + ' remoteId: ' + remoteId, LogInfoLevel.High, 'parseParentMenu');
 
     let remotePlayer: RemotePlayer | null = null;
     if (playerId !== undefined && remoteId !== undefined) {
@@ -96,21 +96,16 @@ function parseMenu(msg: LyrionCometdMessage, server: Server): void {
     if (data != undefined) {
         //First look to see if this is the parent
         if (data.item_loop[0]?.node != undefined) {
-            if (g_Print_Incoming_Menu) System.Print("Parent Menu");
+            g_logger.logInfo('Parent Menu', LogInfoLevel.High, 'parseMenu');
             parseParentMenu(msg, server);
         }
         else {
-            if (g_Print_Incoming_Menu) System.Print("Submenu");
+            g_logger.logInfo('Submenu', LogInfoLevel.High, 'parseMenu');
             parseSubMenu(msg, server);
         }
     }
     else {
-        if (g_Debug) {
-            System.Print("Dont know what to do ParseMenu");
-            System.Print("----------ParseMenu JSON--------------");
-            printMaxLineSize(JSON.stringify(msg));
-            System.Print("----------END ParseMenu JSON--------------");
-        }
+        g_logger.logError('Dont know what to do ParseMenu: ' + JSON.stringify(msg), 'parseMenu');
     }
 }
 
@@ -130,35 +125,19 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
     const itemCount = data.item_loop.length;
     const itemsCollected = offset + itemCount;
 
-    if (g_Print_Incoming_Menu) {
-        System.Print("remotePlayer.ListLevel=" + remotePlayer?.ListLevel);
-        System.Print("totalItems=" + totalItems);
-        System.Print("itemsCollected=" + itemsCollected);
-        System.Print("itemCount=" + itemCount);
-        System.Print("offset=" + offset);
-    }
+    g_logger.logInfo('remotePlayer.ListLevel=' + remotePlayer?.ListLevel + ' totalItems=' + totalItems + ' itemsCollected=' + itemsCollected + ' itemCount=' + itemCount + ' offset=' + offset, LogInfoLevel.High, 'parseSubMenu');
 
     if (!remotePlayer) {
-        dbg('parseSubMenu: failed to find matching remotePlayer')
+        g_logger.logInfo('parseSubMenu: failed to find matching remotePlayer', LogInfoLevel.High, 'parseSubMenu');
         return;
     }
 
     if (!browseListRequestCorrelation || remotePlayer.BrowseListRequestCorrelation != browseListRequestCorrelation) {
-        dbg('parseSubMenu: json browseListRequestCorrelation value did not match current remotePlayer.BrowseListRequestCorrelation value');
+        g_logger.logInfo('parseSubMenu: json browseListRequestCorrelation value did not match current remotePlayer.BrowseListRequestCorrelation value', LogInfoLevel.High, 'parseSubMenu');
         return;
     }
 
-    //First look for to see if the player name is specifed.  if it is, we think this can only be the now plyaing list
     if (data.player_name != undefined) {
-        //System.Print("Now Playing List");
-        if (data.item_loop != undefined) {
-            remotePlayer.NowPlayingList.Open();
-            remotePlayer.NowPlayingList.RemoveAll();
-            for (let i = 0; i < data.item_loop.length; i++) {
-                remotePlayer.NowPlayingList.Insert(data.item_loop[i].track ?? "");
-            }
-            remotePlayer.NowPlayingList.Close();
-        }
         return;
     }
 
@@ -224,9 +203,7 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
                     if (item.presetParams.favorites_url != undefined) {
                         menuItem.FavoritesUrl = replaceAll(item.presetParams.favorites_url, '"', "");
                         menuItem.FavoritesTitle = item.presetParams.favorites_title ?? "";
-                        if (System.LogLevel==1) {
-                            System.LogInfo(1, menuItem.FavoritesTitle + " url:" + menuItem.FavoritesUrl);
-                        }
+                        g_logger.logInfo(menuItem.FavoritesTitle + ' url:' + menuItem.FavoritesUrl, LogInfoLevel.Low, 'parseSubMenu');
                     }
                 }
 
@@ -342,7 +319,7 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
         remotePlayer.CurrentList.ListItems[remotePlayer.CurrentList.Selected].MoreOptionsAvailable = moreOptionsAvailable;
     }
 
-    dbg('Finished parsing submenu page.  itemsCollected: ' + itemsCollected + ' of totalItems: ' + totalItems);
+    g_logger.logInfo('Finished parsing submenu page.  itemsCollected: ' + itemsCollected + ' of totalItems: ' + totalItems, LogInfoLevel.High, 'parseSubMenu');
     if (itemsCollected < totalItems) {  //We have to get more pages..
         //get the last selected item, so we know what command to send if we have a offset
 

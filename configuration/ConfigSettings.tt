@@ -65,10 +65,6 @@ for (var i = 1; i <= remoteCount; i++)
 
   <category advanced="true" description="Driver debug options" hidden="false" name="Debug Settings">
     <setting description="Enable verbose debug output" name="Enable Trace" type="boolean" variable="DebugTrace" />
-    <setting description="Print Output Commands" name="Print Output post info" type="boolean" variable="DebugPrintPosts" />
-    <setting description="Print Incoming JSON" name="Print Incoming JSON Responses" type="boolean" variable="DebugPrintIncoming" />
-    <setting description="Print Incoming RAW Data" name="Print Incoming RAW Data" type="boolean" variable="DebugRAWIncoming" />
-    <setting description="Print Incoming Menu Data" name="Print Incoming Menu Data" type="boolean" variable="DebugMenuIncoming" />
   </category>
 
 </configuration>

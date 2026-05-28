@@ -1,4 +1,5 @@
 class Server {
+    private readonly _logger: Logger;
     private bodyBytesExpected: number = 0;
     private rawBuffer: string = "";
 
@@ -13,10 +14,12 @@ class Server {
     constructor(
         ip: string,
         port: number,
+        logger: Logger,
         onCommRx: (data: string, handle: number) => void,
         onConnect: (handle: number) => void,
         onDisconnect: (handle: number) => void
     ) {
+        this._logger = logger;
         this.Ip = ip;
         this.Port = port;
 
@@ -30,7 +33,7 @@ class Server {
     }
 
     public sendJsonCommand(json: string, isRpc: boolean = false): void {
-        dbg('sendJsonCommand sending Command: ' + json + ' to Server: ' + this.Ip);
+        this._logger.logInfo('sendJsonCommand: ' + json, LogInfoLevel.High);
         let command = "POST /cometd HTTP/1.1\r\n" +
                       "Content-Length: " + json.length + "\r\n" +
                       "Content-Type: application/json\r\n\r\n";
@@ -44,16 +47,7 @@ class Server {
 
         this.Connection.Write(command);
 
-        if (g_Print_Posts) {
-            System.Print("");
-            System.Print(g_DriverName + "  **Sending the following Command with http header to " + this.Ip + "****");
-            var test = command.split('\r\n');
-            for (let i = 0; i < test.length; i++) {
-                printMaxLineSize(test[i]);
-            }
-            System.Print(g_DriverName + "****End Post****");
-            System.Print("");
-        }
+        this._logger.logInfo('Sending command: ' + command, LogInfoLevel.High);
     }
 
     public handleConnection(): void {
@@ -84,14 +78,7 @@ class Server {
     }
 
     public handleIncomingData(data: string): void {
-        if (g_Print_Incoming_Raw) {
-            System.Print("");
-            System.Print(g_DriverName + "**********************OnCommRX Start************************************************************************************");
-            System.Print("CLBody=" + this.bodyBytesExpected + " Buffer=" + this.rawBuffer.length + " Incoming=" + data.length);
-            printMaxLineSize(data);
-            System.Print(g_DriverName + "**********************OnCommRX End*************************************************************************************");
-            System.Print("");
-        }
+        this._logger.logInfo('OnCommRX CLBody=' + this.bodyBytesExpected + ' Buffer=' + this.rawBuffer.length + ' Incoming=' + data.length + ' data=' + data, LogInfoLevel.High);
         this.rawBuffer += data;
         this.processBuffer();
     }
@@ -160,15 +147,11 @@ class Server {
         if (data.indexOf('play_random_favorite') > 0) {
             const cleanJson = data.substring(data.indexOf("{"), data.lastIndexOf('}') + 1);
 
-            if (g_Print_Incoming_Json) {
-                System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
-                printMaxLineSize(cleanJson);
-                System.Print(g_DriverName + "***** End Incoming JSON Data*******");
-            }
+            this._logger.logInfo('Incoming JSON: ' + cleanJson, LogInfoLevel.High);
 
             const rpcResponse = parseLyrionRpc(cleanJson);
             if (rpcResponse === false) {
-                System.Print(g_DriverName + " Failed to parse play_random_favorite RPC response.");
+                this._logger.logError('Failed to parse play_random_favorite RPC response.');
                 return;
             }
 
@@ -178,27 +161,27 @@ class Server {
             const folderTitle: string = rpcResponse.result.title ?? "";
             const results: LyrionFavoriteItem[] = rpcResponse.result.loop_loop ?? [];
 
-            System.Print(g_DriverName + ` Handling Random Playlist Request, server [${this.Ip}], player [${playerId}], requestedSubfolder [${requestedSubfolder}], folderTitle [${folderTitle}].`);
+            this._logger.logInfo('Handling Random Playlist Request, player [' + playerId + '], requestedSubfolder [' + requestedSubfolder + '], folderTitle [' + folderTitle + '].', LogInfoLevel.Low);
 
             if (folderTitle == "Favorites" && requestedSubfolder != "") {
                 for (let i = 0; i < results.length; i++) {
                     const result = results[i];
 
-                    System.Print(g_DriverName + ` Examining result with name [${result.name}], hasItems [${result.hasitems}], isAudio [${result.isaudio}].`);
+                    this._logger.logInfo('Examining result with name [' + result.name + '], hasItems [' + result.hasitems + '], isAudio [' + result.isaudio + '].', LogInfoLevel.High);
 
                     if (result.name.toUpperCase() == requestedSubfolder.toUpperCase() && result.hasitems && !result.isaudio) {
                         const json = buildRpcRequestJson(rpcResponse.id, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100, "item_id:" + result.id]);
 
-                        System.Print(g_DriverName + ` Found Favorites subfolder with name [${requestedSubfolder}], requesting contents.`);
+                        this._logger.logInfo('Found Favorites subfolder with name [' + requestedSubfolder + '], requesting contents.', LogInfoLevel.Low);
 
                         this.sendJsonCommand(json, true);
                         return;
                     }
                 }
 
-                System.Print(g_DriverName + ` Unable to find Favorites subfolder with name [${requestedSubfolder}].`);
+                this._logger.logInfo('Unable to find Favorites subfolder with name [' + requestedSubfolder + '].', LogInfoLevel.Low);
             } else {
-                System.Print(g_DriverName + ` Searching for random playlist from Favorites subfolder [${requestedSubfolder}].`);
+                this._logger.logInfo('Searching for random playlist from Favorites subfolder [' + requestedSubfolder + '].', LogInfoLevel.Low);
 
                 const playlistIds: string[] = [];
 
@@ -206,7 +189,7 @@ class Server {
                     const result = results[i];
 
                     if (result.type == "playlist" && result.hasitems && result.isaudio) {
-                        System.Print(g_DriverName + ` Adding playlist [${result.name}] to potential random playlist options.`);
+                        this._logger.logInfo('Adding playlist [' + result.name + '] to potential random playlist options.', LogInfoLevel.High);
                         playlistIds.push(result.id);
                     }
                 }
@@ -214,13 +197,13 @@ class Server {
                 if (playlistIds.length > 0) {
                     const randomPlaylistIndex = Math.floor(Math.random() * playlistIds.length);
                     const randomPlaylistId = playlistIds[randomPlaylistIndex];
-                    System.Print(g_DriverName + ` Playing random playlist [${randomPlaylistId}].`);
+                    this._logger.logInfo('Playing random playlist [' + randomPlaylistId + '].', LogInfoLevel.Low);
                     const json = buildRpcRequestJson("play_playlist", playerId, [LyrionCmd.Favorites, LyrionFavoritesCmd.Playlist, LyrionPlaylistCmd.Play, "item_id:" + randomPlaylistId]);
                     this.sendJsonCommand(json, true);
                     return;
                 }
 
-                System.Print(g_DriverName + ` Found no eligible playlists in Favorites [${requestedSubfolder}] subfolder.`);
+                this._logger.logInfo('Found no eligible playlists in Favorites [' + requestedSubfolder + '] subfolder.', LogInfoLevel.Low);
             }
         }
     }
@@ -233,17 +216,11 @@ class Server {
             return;
         }
 
-        if (g_Print_Incoming_Json) {
-            System.Print(g_DriverName + "***** Start Incoming JSON Data*******");
-            printMaxLineSize(data);
-            System.Print(g_DriverName + "***** End Incoming JSON Data*******");
-        }
+        this._logger.logInfo('Incoming JSON: ' + data, LogInfoLevel.High);
 
         const messages = parseLyrionCometd(data);
         if (messages === false) {
-            System.Print("**********************Not JSON*********************************");
-            printMaxLineSize(data);
-            System.Print("**********************End Not JSON*********************************");
+            this._logger.logError('Failed to parse incoming data as JSON: ' + data);
             return;
         }
 
@@ -270,7 +247,7 @@ class Server {
                     }
 
                     if (!player) {
-                        dbg("Didn't find match for Player with name: " + playerName);
+                        this._logger.logInfo("Didn't find match for Player with name: " + playerName, LogInfoLevel.High);
                         continue;
                     }
 

@@ -1,13 +1,8 @@
 class RemotePlayer {
+    private readonly _logger: Logger;
+
 	public readonly Remote: Remote;
     public readonly Player: Player;
-
-	public LastPlayListSelectedItem: number = 0;
-	public PlaylistItemSelected: boolean = false;
-	public PlayListItemOrigLocation: number = -1;
-	public PlayListItemNewLocation: number = -1;
-
-	public PlayListChangeCommands: object[] = [];
 
     public readonly BrowseList: SystemVarsList<BrowseListItem | string>;
 
@@ -23,14 +18,13 @@ class RemotePlayer {
 
     public KeyboardData: string = "";
     public KeyboardLayout: number = 0;
-    public BrowselistPageMacro: number = 0;
-    public KeyboardPageMacro: number = 0;
 
     public Offset: number = 0;
 
     public History: BrowseListItem[] = [];
 
-    constructor(remote: Remote, player: Player) {
+    constructor(remote: Remote, player: Player, logger: Logger) {
+        this._logger = logger;
         this.Remote = remote;
         this.Player = player;
 
@@ -43,7 +37,7 @@ class RemotePlayer {
     }
     
     public BrowseListSelect(index: number): void {
-        dbg('List Select: index ' + index);
+        this._logger.logInfo('List Select: index ' + index, LogInfoLevel.High);
         const paddedPlayerId = padDigit(this.Player.Id);
 
         const command = this.CurrentList.ListItems[index].Actions[0].GoCmd;
@@ -109,7 +103,7 @@ class RemotePlayer {
 
             this.ListLevel--;
             this.CurrentList = this.History.pop()!;
-            if (g_Print_Incoming_Menu) System.Print("ListLevel=" + this.ListLevel);
+            this._logger.logInfo('ListLevel=' + this.ListLevel, LogInfoLevel.High);
             if (this.ListLevel == 0) {
                 this.CurrentList.MenuTitle = " Home";
             }
@@ -117,18 +111,17 @@ class RemotePlayer {
             this.BrowseList.Open();
             this.BrowseList.RemoveAll();
 
-            var lastListIem;
-            for (let listItem in this.CurrentList.ListItems) {
-                this.BrowseList.Insert(this.CurrentList.ListItems[listItem].MenuTitle);
-                lastListIem = listItem;
+            for (let i = 0; i < this.CurrentList.ListItems.length; i++) {
+                this.BrowseList.Insert(this.CurrentList.ListItems[i].MenuTitle);
             }
 
+            const lastIdx = this.CurrentList.ListItems.length - 1;
             //Now set top of list
             this.BrowseList.SetIndexes(this.CurrentList.Top, this.CurrentList.Top);
-            SystemVars.Write("MoreOptionsAvailableP" + paddedPlayerId + "%" + this.Remote.Id, this.CurrentList.ListItems[lastListIem].MoreOptionsAvailable);
-            SystemVars.Write("MoreOptionsNotAvailableP" + paddedPlayerId + "%" + this.Remote.Id, (this.CurrentList.ListItems[lastListIem].MoreOptionsAvailable == false));
+            SystemVars.Write("MoreOptionsAvailableP" + paddedPlayerId + "%" + this.Remote.Id, this.CurrentList.ListItems[lastIdx].MoreOptionsAvailable);
+            SystemVars.Write("MoreOptionsNotAvailableP" + paddedPlayerId + "%" + this.Remote.Id, (this.CurrentList.ListItems[lastIdx].MoreOptionsAvailable == false));
             SystemVars.Write("ShowingMoreOptionsBrowseP" + paddedPlayerId + "%" + this.Remote.Id, false);
-            if (g_Print_Incoming_Menu) System.Print("this.CurrentList.MoreOptionsAvailable=" + this.CurrentList.ListItems[lastListIem].MoreOptionsAvailable);
+            this._logger.logInfo('this.CurrentList.MoreOptionsAvailable=' + this.CurrentList.ListItems[lastIdx].MoreOptionsAvailable, LogInfoLevel.High);
             this.BrowseList.Close();
         }
     }
@@ -204,7 +197,7 @@ class RemotePlayer {
 
         const newNames = this.Player.CustomMenuNewNames;
 
-        dbg('Adding ' + this.CurrentList.ListItems.length + ' items to browse list for Remote: ' + this.Remote.Id + ', Player: ' + this.Player.Id);
+        this._logger.logInfo('Adding ' + this.CurrentList.ListItems.length + ' items to browse list', LogInfoLevel.High);
         for (var i = 0; i < this.CurrentList.ListItems.length; i++) {
             if (newNames.length > 0) {
                 this.CurrentList.ListItems[i].MenuTitle = newNames[i];
@@ -215,6 +208,6 @@ class RemotePlayer {
         this.BrowseList.SetIndexes(0, 0);
         this.BrowseList.SetMarked(0);
         this.BrowseList.Close();
-        dbg('Browse list now contains ' + this.BrowseList.Size + ' items');
+        this._logger.logInfo('Browse list now contains ' + this.BrowseList.Size + ' items', LogInfoLevel.High);
     }
 }

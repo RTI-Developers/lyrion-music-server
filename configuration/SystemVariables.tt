@@ -29,10 +29,6 @@ for (var i = 1; i <= playerCount; i++)
 
 <category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Now Playing" sourceid="Player<#= i #>">
   <variable name="Now Playing List" sysvar="NowPlayingListP<#= paddedIndex #>%" type="list" buttontag="Queue" />
-  <variable format="L:0:Play:1:Select" name="Playlist Mode (Integer)" sample="1" sysvar="PlayListModeIntegerP<#= paddedIndex #>%" type="integer" />
-  <variable name="Playlist Play Mode" sample="true" sysvar="PlayListPlayModeP<#= paddedIndex #>%" type="boolean" />
-  <variable name="Playlist Select/Edit Mode" sample="true" sysvar="PlayListSelectModeP<#= paddedIndex #>%" type="boolean" />
-  <variable name="More then 1 item in Now Playing list" sample="true" sysvar="MoreThen1NowPlayingP<#= paddedIndex #>%" type="boolean" />
 </category>
 
 <category condition="$Total_Players > <#= i - 1 #>" name="%%NameP<#= paddedIndex #>%% Info" sourceid="Player<#= i #>">
@@ -129,13 +125,6 @@ for (var i = 1; i <= playerCount; i++)
   <category name="Server">
     <variable name="Connected" sample="false" sysvar="ServerConnected" type="boolean" buttontag="Server Connected" />
     <variable name="Version" sample="8.5.0" sysvar="ServerVersion" type="string" />
-  </category>
-
-  <category name="Debug Modes">
-    <variable name="Print RAW" sample="false" sysvar="PrintRAW" type="boolean" />
-    <variable name="Print Post" sample="false" sysvar="PrintPost" type="boolean" />
-    <variable name="Print JSON" sample="false" sysvar="PrintJSON" type="boolean" />
-    <variable name="Print Menu" sample="false" sysvar="PrintMenu" type="boolean" />
   </category>
 
 </variables>

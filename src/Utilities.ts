@@ -81,55 +81,8 @@ function getItemIdValue(params: string[]): string {
     return "";
 }
 
-function printOutResults(data: string): void {
-    System.Print("---------------Start data--------------");
-    const dataArray = data.split('\r\n');
-    for (var l = 0; l < dataArray.length; l++) {
-        printMaxLineSize(dataArray[l]);
-    }
-    System.Print("---------------End data--------------");
-}
-
-function printMaxLineSize(line: string): void {
-    let lineCount = 0;
-    let maxLineCount = 175;
-    let printData = "";
-    for (var x = 0; x < line.length; x++) {
-        printData += line.charAt(x);
-        lineCount++;
-        if (lineCount == maxLineCount) {
-            System.Print(printData);
-            lineCount = 0;
-            printData = "";
-        }
-    }
-    System.Print(printData);
-}
-
-function test(str: string): void {
-    for (let i = 0; i < str.length; i++) {
-        System.Print(str.substring(i, 1) + " " + str.charCodeAt(i));
-    }
-}
-
 function myTrim(value: string): string {
     return value.replace(/^\s+|\s+$/gm, '');
-}
-
-function printDebugModes(): void {
-    SystemVars.Write("PrintRAW", g_Print_Incoming_Raw);
-    SystemVars.Write("PrintPost", g_Print_Posts);
-    SystemVars.Write("PrintJSON", g_Print_Incoming_Json);
-    SystemVars.Write("PrintMenu", g_Print_Incoming_Menu);
-}
-
-function dbg(message: string): void {
-    if (g_Debug) {
-        System.Print(g_DriverName + ":" + message);
-        if (System.LogLevel > 0) {
-            System.LogInfo(0, message);
-        }
-    }
 }
 
 function formatDate(date: string): string {
@@ -253,7 +206,7 @@ function findMenuItem(menuTitle: string, listItems: BrowseListItem[]): BrowseLis
         }
     }
     
-    dbg('findMenuItem failed to find BrowseListItem for menuTitle:' + menuTitle);
+    g_logger.logInfo('findMenuItem failed to find BrowseListItem for menuTitle:' + menuTitle, LogInfoLevel.High, 'findMenuItem');
     return null;
 }
 
@@ -286,10 +239,10 @@ function getRemotePlayer(remoteId: number, playerId: number): RemotePlayer | nul
     }
 
     const remotePlayerIds = g_RemotePlayers.map(rp => [rp.Remote.Id, rp.Player.Id]);
-    dbg('Could not find RemotePlayer for RemoteId: ' + remoteId + ' and PlayerId: ' + playerId + ' in list: ' + remotePlayerIds);
+    g_logger.logInfo('Could not find RemotePlayer for RemoteId: ' + remoteId + ' and PlayerId: ' + playerId + ' in list: ' + remotePlayerIds, LogInfoLevel.High, 'getRemotePlayer');
 
     if (playerId != 0) {
-        dbg('Retrying with PlayerId 0');
+        g_logger.logInfo('Retrying with PlayerId 0', LogInfoLevel.High, 'getRemotePlayer');
         return getRemotePlayer(remoteId, 0);
     }
 

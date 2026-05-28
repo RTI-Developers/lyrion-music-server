@@ -1,5 +1,7 @@
 class Player {
+    private readonly _logger: Logger;
     private readonly onProgressTick: (handle: number) => void;
+    private readonly onPlaylistReady: (playerId: number, titles: string[]) => void;
 
     private Album: string = "";
     private Artist: string = "";
@@ -15,7 +17,7 @@ class Player {
     private NowPlayingCoverArt: string = "";
     private PlaylistCount: number = 0;
     private PlaylistCurrentIndex: number = 0;
-    private PlaylistReset: boolean = false;
+    private PlaylistRebuildPending: boolean = false;
     private PlaylistTimestamp: number = 0;
     private Repeat: boolean = false;
     private RepeatType: number = 0; //0 = Off,  1= Repeat Song, 2= Repeat after end
@@ -56,11 +58,15 @@ class Player {
 
     constructor(
         id: number,
-        onProgressTick: (handle: number) => void
+        logger: Logger,
+        onProgressTick: (handle: number) => void,
+        onPlaylistReady: (playerId: number, titles: string[]) => void
     ) {
         let paddedId = padDigit(id);
 
+        this._logger = logger;
         this.onProgressTick = onProgressTick;
+        this.onPlaylistReady = onPlaylistReady;
 
         this.Id = id;
         this.Name = Config.Get("NameP" + paddedId);
@@ -161,40 +167,8 @@ class Player {
         this.ShuffleType = shuffleType;
         this.Shuffle = (this.ShuffleType > 0);
         this.PoweredOn = poweredOn;
-        this.PlaylistCount = info.playlist_tracks;
-
-        if (info.playlist_timestamp != this.PlaylistTimestamp) {
-            this.Playlist = [];
-            this.PlaylistReset = true;
-        } else {
-            this.PlaylistReset = false;
-        }
-        this.PlaylistTimestamp = info.playlist_timestamp;
-
-        if (info.playlist_loop != undefined) {
-            const lastIndex = parseInt(info.playlist_loop[info.playlist_loop.length - 1]["playlist index"], 10) + 1;
-            if (this.Playlist.length <= this.PlaylistCount) {
-                for (let i = 0; i < info.playlist_loop.length; i++) {
-                    try {
-                        this.Playlist.push(this.buildPlaylistItem(info.playlist_loop[i]));
-                    } catch (err) {
-                        System.Print("%%%%%%%%%%%%%%%%%% Playlist Error %%%%%%%%%%%%%%%%%%%%%%%%%%%");
-                        System.Print("err with play list count error was " + err);
-                        this.PlaylistCount--;
-                    }
-                }
-                if (this.Playlist.length < this.PlaylistCount) {
-                    const paginationJson = buildSlimRequestJson(
-                        this.Id,
-                        undefined,
-                        this.Server.ClientId,
-                        g_Slim_Request,
-                        this.MacAddress,
-                        [LyrionCmd.Status, lastIndex, 25, g_Status_Tags]);
-                    this.Server.sendJsonCommand(paginationJson);
-                }
-            }
-        }
+        
+        this.applyPlaylistUpdate(info);
 
         const nowPlayingInfo = this.Playlist[this.PlaylistCurrentIndex];
 
@@ -231,7 +205,7 @@ class Player {
 
                 if (info.remoteMeta != undefined) {
                     const meta = info.remoteMeta;
-                    dbg('Setting Player: ' + this.Id + ' BitRate from remoteMeta.bitrate: ' + meta.bitrate);
+                    this._logger.logInfo('Setting BitRate from remoteMeta.bitrate: ' + meta.bitrate, LogInfoLevel.High);
                     if (meta.bitrate != undefined) { this.BitRate = meta.bitrate; }
                     if (meta.album != undefined) { this.Album = System.ConvertFromUTF8(meta.album); }
                 }
@@ -239,6 +213,51 @@ class Player {
 
             this.updateVariables();
             this.propagateToSyncedPlayers();
+        }
+    }
+
+    private applyPlaylistUpdate(info: LyrionStatusData): void {
+        this.PlaylistCount = info.playlist_tracks;
+
+        // A changed timestamp means LMS replaced or modified the queue;
+        // discard our cached copy so it is rebuilt from scratch.
+        if (info.playlist_timestamp != this.PlaylistTimestamp) {
+            this.Playlist = [];
+            this.PlaylistRebuildPending = true;
+        }
+        this.PlaylistTimestamp = info.playlist_timestamp;
+
+        // LMS paginates the queue across multiple status responses.
+        // Accumulate pages until Playlist is fully populated.
+        if (info.playlist_loop != undefined) {
+            const nextPageOffset = parseInt(info.playlist_loop[info.playlist_loop.length - 1]["playlist index"], 10) + 1;
+            if (this.Playlist.length < this.PlaylistCount) {
+                info.playlist_loop.forEach(entry => {
+                    try {
+                        this.Playlist.push(this.buildPlaylistItem(entry));
+                    } catch (err) {
+                        this._logger.logError('Playlist error: ' + err);
+                        this.PlaylistCount--;
+                    }
+                });
+                // More pages remain — request the next batch.
+                if (this.Playlist.length < this.PlaylistCount) {
+                    const paginationJson = buildSlimRequestJson(
+                        this.Id,
+                        undefined,
+                        this.Server.ClientId,
+                        g_Slim_Request,
+                        this.MacAddress,
+                        [LyrionCmd.Status, nextPageOffset, 25, g_Status_Tags]);
+                    this.Server.sendJsonCommand(paginationJson);
+                }
+            }
+        }
+
+        // All pages loaded after a queue composition change — notify remotes.
+        if (this.PlaylistRebuildPending && this.Playlist.length >= this.PlaylistCount) {
+            this.PlaylistRebuildPending = false;
+            this.onPlaylistReady(this.Id, this.Playlist.map(function(p) { return p.Title; }));
         }
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, afterAll } from 'vitest';
 import * as path from 'path';
-import { createHarness } from 'rti-driver-test-harness';
+import { createHarness } from '@rti-developers/test-harness';
 import { DEBUG, LMS_HOST, LMS_PORT, SQ_AUDIO_OUT, SQ_EXE_NAME } from './test-env';
 
 // ─── Shared constants ─────────────────────────────────────────────────────────
@@ -35,10 +35,6 @@ const harness = createHarness({
         'Defaul_Server_IP':             LMS_HOST,
         'Default_Server_TCP_Port':      LMS_PORT,
         'DebugTrace':                   DEBUG,
-        'DebugPrintPosts':              DEBUG,
-        'DebugPrintIncoming':           DEBUG,
-        'DebugRAWIncoming':             DEBUG,
-        'DebugMenuIncoming':            DEBUG,
         'Favorites_Hide_MySqueeze_P01': 'false',
         'SkipFirstPandoraMenuP01':      'false',
         'Use_Custom_Parent_Menu_P01':   'false',

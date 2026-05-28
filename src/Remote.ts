@@ -1,11 +1,11 @@
 class Remote {
+    public readonly BroweslistPageMacro: number | undefined;
 	public readonly Id: number;
+    public readonly KeyboardPageMacro: number | undefined;
 
-    public BroweslistPageMacro: number;
-    public KeyboardPageMacro: number;
-
-    constructor(id: number)
-    {
+    constructor(id: number, browselistPageMacro?: number, keyboardPageMacro?: number) {
         this.Id = id;
+        this.BroweslistPageMacro = browselistPageMacro;
+        this.KeyboardPageMacro = keyboardPageMacro;
     }
 }
