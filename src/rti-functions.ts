@@ -33,7 +33,7 @@ function showHideSyncPopup(playerId: number, todo: string, remoteId: number): vo
         result = false;
     }
 
-    SystemVars.Write(variable, todo);
+    SystemVars.Write(variable, result);
 }
 
 /*
@@ -654,10 +654,6 @@ function subscribeTest(playerId: number, remoteId: number): void {
     if (remotePlayer == null) { return; }
     const json = buildSlimSubscribeJson(remotePlayer.Player.Id, remotePlayer.Remote.Id, remotePlayer.Player.Server.ClientId, "slim/serverstatus", "", [LyrionCmd.ServerStatus, 0, 255, "prefs:ignoredarticles,browseagelimit,noGenreFilter,PLUGIN_TRACKSTAT,audiodir", "playerprefs:playtrackalbum,digitalVolumeControl", "subscribe:60"]);
     remotePlayer.Player.Server.sendJsonCommand(json);
-}
-
-function changeDebugMode(debugItem: string, todo: string): void {
-    g_logger.logInfo('changeDebugMode: debugItem=' + debugItem + ', todo=' + todo, LogInfoLevel.Low);
 }
 
 function printBuffer(_playerId: number, remoteId: number): void {

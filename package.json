@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.ts",
   "devDependencies": {
-    "@rti-developers/sdk-types": "^1.0.0",
+    "@rti-developers/sdk-types": "^1.1.0",
     "@rti-developers/sdk-utils": "^1.0.0",
-    "@rti-developers/test-harness": "file:../test-harness",
+    "@rti-developers/test-harness": "^1.1.2",
     "@types/node": "^20",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "5.60.1",

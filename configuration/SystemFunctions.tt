@@ -666,18 +666,5 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="ViewID" type="deviceid" />
     </function>
 
-    <function export="changeDebugMode" name="Change Debug Mode" repeatrate="0">
-      <parameter name="Debug" type="mcstring">
-        <choice name="Print JSON" value="JSON" />
-        <choice name="Raw Incoming Data" value="RAW" />
-        <choice name="Post Commands" value="POST" />
-        <choice name="Incoming Menu Data" value="MENU" />
-      </parameter>
-      <parameter default="2" name="To Do" type="mcstring">
-        <choice name="On" value="1" />
-        <choice name="Off" value="0" />
-        <choice name="Toggle" value="2" />
-      </parameter>
-    </function>
   </category>
 </functions>
