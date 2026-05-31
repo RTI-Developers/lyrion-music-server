@@ -9,5 +9,5 @@ node_modules/
 tools/
 
 # Test artifacts
-test/*.log
-test/test-env.ts
+tests/*.log
+tests/test-env.ts
