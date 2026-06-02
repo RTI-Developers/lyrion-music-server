@@ -332,7 +332,7 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
             g_Slim_Request,
             remotePlayer.Player.MacAddress.toLowerCase(),
             (remotePlayer.BrowseListParentActionItems.GoCmd as LyrionCommandArray)
-                .concat([remotePlayer.Offset, g_Max_Poll_Count])
+                .concat([remotePlayer.Offset, g_Max_Browse_Items])
                 .concat(remotePlayer.BrowseListParentActionItems.GoParams as LyrionCommandArray),
             correlationId
         );

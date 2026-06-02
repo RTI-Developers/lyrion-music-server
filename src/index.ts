@@ -1,5 +1,6 @@
 const g_Remote_Ids: number[] = Config.Get("SYSTEM::TwoWayDeviceList").split(' ').map(rid => parseInt(rid, 10));
-const g_Max_Poll_Count = 25;
+/** Maximum number of menu/browse items returned per slim.request call (Lyrion API count parameter) */
+const g_Max_Browse_Items = 25;
 const g_Customized_Remote_Count = parseInt(Config.Get("TotalRemotes"), 10);
 const g_Keyboard_Layer1 = new Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0');
 const g_Keyboard_Layer2 = new Array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0');

@@ -139,7 +139,7 @@ function enterKeyBoardInputImpl(remotePlayer: RemotePlayer, key: number): void {
             g_Slim_Request,
             remotePlayer.Player.MacAddress,
             (commands as LyrionCommandArray)
-                .concat([0, g_Max_Poll_Count])
+                .concat([0, g_Max_Browse_Items])
                 .concat(params as LyrionCommandArray),
             remotePlayer.BrowseListRequestCorrelation
         );

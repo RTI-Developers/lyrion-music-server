@@ -73,7 +73,7 @@ class RemotePlayer {
                 g_Slim_Request,
                 this.Player.MacAddress.toLowerCase(),
                 (command as LyrionCommandArray)
-                    .concat([this.Offset, g_Max_Poll_Count])
+                    .concat([this.Offset, g_Max_Browse_Items])
                     .concat(params as LyrionCommandArray),
                 this.BrowseListRequestCorrelation);
         }

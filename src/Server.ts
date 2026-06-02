@@ -268,7 +268,7 @@ class Server {
                         this.ClientId,
                         g_Slim_Request,
                         player.MacAddress,
-                        [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "menu:opml_generic", "direct:1"]);
+                        [LyrionCmd.Menu, "items", 0, g_Max_Browse_Items, "menu:opml_generic", "direct:1"]);
                     this.sendJsonCommand(json);
                 }
             }

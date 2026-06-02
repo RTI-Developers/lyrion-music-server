@@ -106,7 +106,7 @@ function getPlayerStatus(playerId: number, remoteId: number): void {
         remotePlayer.Player.Server.ClientId,
         g_Slim_Request,
         remotePlayer.Player.MacAddress,
-        [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "direct:1"]);
+        [LyrionCmd.Menu, "items", 0, g_Max_Browse_Items, "direct:1"]);
     remotePlayer.Player.Server.sendJsonCommand(json);
 }
 
@@ -506,7 +506,7 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
                 clientId,
                 g_Slim_Request,
                 mac,
-                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Poll_Count, "sort:new", "mode:" + service]);
+                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Browse_Items, "sort:new", "mode:" + service]);
             break;
         case "myMusic":
         case "home":
@@ -516,7 +516,7 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
                 clientId,
                 g_Slim_Request,
                 mac,
-                [LyrionCmd.Menu, "items", 0, g_Max_Poll_Count, "direct:1"]);
+                [LyrionCmd.Menu, "items", 0, g_Max_Browse_Items, "direct:1"]);
             break;
         case "new":
             json = buildSlimRequestJson(
@@ -525,7 +525,7 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
                 clientId,
                 g_Slim_Request,
                 mac,
-                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Poll_Count, "sort:new", "mode:albums"]);
+                [LyrionCmd.BrowseLibrary, "items", 0, g_Max_Browse_Items, "sort:new", "mode:albums"]);
             isRpc = true;
             break;
         case "radios":
@@ -535,7 +535,7 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
                 clientId,
                 g_Slim_Request,
                 mac,
-                [LyrionCmd.Radios, 0, g_Max_Poll_Count, "menu:radio"]);
+                [LyrionCmd.Radios, 0, g_Max_Browse_Items, "menu:radio"]);
             break;
         default:
             json = buildSlimRequestJson(
@@ -544,7 +544,7 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
                 clientId,
                 g_Slim_Request,
                 mac,
-                [service, "items", 0, g_Max_Poll_Count, "menu:" + service]);
+                [service, "items", 0, g_Max_Browse_Items, "menu:" + service]);
             break;
     }
 
