@@ -34,8 +34,8 @@ The driver communicates with LMS using the CometD/Slim API over TCP (default por
 
 | Setting | Variable | Description |
 |---|---|---|
-| Server Name | `Defaul_Server_Name` | Friendly name (documentation only) |
-| TCP Address | `Defaul_Server_IP` | IP address of the LMS server |
+| Server Name | `Default_Server_Name` | Friendly name (documentation only) |
+| TCP Address | `Default_Server_IP` | IP address of the LMS server |
 | TCP Port | `Default_Server_TCP_Port` | LMS port (default: `9000`) |
 
 ### Player Settings (P01–P20)

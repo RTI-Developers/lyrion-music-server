@@ -17,8 +17,8 @@ for (var i = 1; i <= playerCount; i++)
 
 
   <category description="Default Server" name="The Default Server players will connect to">
-    <setting default="Music Server" description="Server Name" name="Server Name" type="string" variable="Defaul_Server_Name" />
-    <setting default="192.168.2.115" description="IP address of server players are connected to" name="TCP Address" type="string" variable="Defaul_Server_IP" />
+    <setting default="Music Server" description="Server Name" name="Server Name" type="string" variable="Default_Server_Name" />
+    <setting default="192.168.2.115" description="IP address of server players are connected to" name="TCP Address" type="string" variable="Default_Server_IP" />
     <setting default="9000" description="Squeezebox Server's TCP Control Port (Default is 9000)" name="Squeezebox TCP Port" type="integer" variable="Default_Server_TCP_Port" />
   </category>
 

@@ -652,19 +652,5 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="ViewID" type="deviceid" />
     </function>
 
-    <function export="browseSubMenuTest" name="Sub Browse Test" repeatrate="0">
-      <parameter name="Player" type="mcinteger">
-<#= playerChoices #>
-      </parameter>
-      <parameter name="Service" type="mcstring">
-        <choice name="Pandora" value="pandora" />
-        <choice name="Shoutcast" value="shoutcast" />
-        <choice name="Spotify" value="spotify" />
-        <choice name="Sirius" value="sirius" />
-        <choice name="SKY.fm" value="skyfm" />
-      </parameter>
-      <parameter name="ViewID" type="deviceid" />
-    </function>
-
   </category>
 </functions>

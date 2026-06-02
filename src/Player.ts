@@ -281,6 +281,7 @@ class Player {
                 break;
             }
         }
+        
         if (masterPlayer) {
             this.SyncedPlayers.push(masterPlayer);
         }

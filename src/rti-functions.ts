@@ -261,19 +261,6 @@ function transport(playerId: number, command: string, remoteId: number): void {
         cmd));
 }
 
-function browseSubMenuTest(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const json = buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
-        remotePlayer.Player.Server.ClientId,
-        g_Slim_Request,
-        remotePlayer.Player.MacAddress,
-        [LyrionCmd.OpmlGeneric, "items", 0, 100, "menu:opml_generic", "item_id:f8c2a3df.0", "useContextMenu:1"]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
-}
-
 function syncListSelection(playerId: number, index: number, syncType: string, remoteId: number): void {
     const remotePlayer = getRemotePlayer(remoteId, playerId);
     if (remotePlayer == null) { return; }
@@ -284,7 +271,7 @@ function syncListSelection(playerId: number, index: number, syncType: string, re
     if (masterPlayer.Name == slavePlayerName) { return; }
 
     let slavePlayer: Player | null = null;
-    for (let i = 0; i > g_Players.length; i++) {
+    for (let i = 0; i < g_Players.length; i++) {
         if (g_Players[i].Name == slavePlayerName) {
             slavePlayer = g_Players[i];
             break;

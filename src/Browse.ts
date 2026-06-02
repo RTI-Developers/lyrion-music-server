@@ -69,8 +69,9 @@ function parseParentMenu(msg: LyrionCometdMessage, server: Server): void {
                 if (newMenuItemLocation != null) {
                     customParent.ListItems.push(newMenuItemLocation);
                 }
-                player.ParentMenu = customParent;
             }
+
+            player.ParentMenu = customParent;
         }
     }
 
@@ -161,8 +162,8 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
             moreOptions.AddHoldCmd = getMenuDetails(moreOptions.AddHoldCmd, data.base.actions["add-hold"]?.cmd);
 
             if (data.base.actions.go != undefined) {
-                moreOptions.GoParams = getMenuDetails(moreOptions.PlayParams, data.base.actions.go.params);
-                moreOptions.GoCmd = getMenuDetails(moreOptions.PlayCmd, data.base.actions.go.cmd);
+                moreOptions.GoParams = getMenuDetails(moreOptions.GoParams, data.base.actions.go.params);
+                moreOptions.GoCmd = getMenuDetails(moreOptions.GoCmd, data.base.actions.go.cmd);
             }
             remotePlayer.CurrentActionsList.Items[remotePlayer.ListLevel] = moreOptions;
         }

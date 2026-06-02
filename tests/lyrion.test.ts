@@ -32,7 +32,7 @@ const harness = createHarness({
         'NameR2':                       REMOTE_B_NAME,
         'Total_Players':                '1',
         'NameP01':                      'LMS-Test',
-        'Defaul_Server_IP':             LMS_HOST,
+        'Default_Server_IP':             LMS_HOST,
         'Default_Server_TCP_Port':      LMS_PORT,
         'DebugTrace':                   DEBUG,
         'Favorites_Hide_MySqueeze_P01': 'false',
