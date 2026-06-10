@@ -24,8 +24,6 @@ function Init(): void {
     g_logger.logInfo('Init', LogInfoLevel.Low);
 
     // Populate Remote List
-    g_remotes.push(new Remote(0));  // Virtual Remote for RTI Processor
-
     for (let i = 0; i < g_Remote_Ids.length; i++) {
         const remoteName = System.GetViewName(i);
         let browselistPageMacro: number | undefined;

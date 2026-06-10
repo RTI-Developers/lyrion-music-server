@@ -31,7 +31,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter default="pause" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="transport" export="transport:Play" name="Play" repeatrate="0" buttontag="Play">
@@ -39,47 +38,41 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter default="play" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="transport" export="transport:Stop" name="Stop" repeatrate="0" buttontag="Stop">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="stop" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="transport" export="transport:Next" name="Next" repeatrate="0" buttontag="Skip Forward">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="next" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="transport" export="transport:Previous" name="Previous" repeatrate="0" buttontag="Skip Back">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="previous" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="transport" export="transport:Repeat" name="Toggle Repeat" repeatrate="0" buttontag="Repeat">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="repeat" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="transport" export="transport:Shuffle" name="Toggle Shuffle" repeatrate="0" buttontag="Shuffle">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="shuffle" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="playerVolume" export="playerVolume:Set" name="Set Volume" repeatrate="0" buttontag="Volume">
@@ -88,52 +81,46 @@ for (var i = 1; i <= playerCount; i++)
 			</parameter>
       <parameter default="set" name="Volume Up Down Set" type="string" />
       <parameter description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-  
+
     <function alias="playerVolume" export="playerVolume:Up" name="Volume Up" repeatrate="0" buttontag="Volume Up">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="up" name="Volume Up Down Set" type="string" />
       <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function alias="playerVolume" export="playerVolume:Down" name="Volume Down" repeatrate="0" buttontag="Volume Down">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="down" name="Volume Up Down Set" type="string" />
       <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-        
+
     <function alias="playerVolume" export="playerVolume:Mute" name="Toggle Mute" repeatrate="0" buttontag="Mute">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="muting" name="Volume Up Down Set" type="string" />
       <parameter default="1" description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-        
+
     <function alias="playerVolume" export="playerVolume:MuteOn" name="Mute On" repeatrate="0" buttontag="Mute On">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="muting 1" name="Volume Up Down Set" type="string" />
       <parameter default="0" description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-            
+
     <function alias="playerVolume" export="playerVolume:MuteOff" name="Mute Off" repeatrate="0" buttontag="Mute Off">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="muting 0" name="Volume Up Down Set" type="string" />
       <parameter default="" description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="playerPower" export="playerPower:TogglePower" name="Toggle Power" repeatrate="0" buttontag="Power">
@@ -141,7 +128,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
       </parameter>
       <parameter default="3" name="Power On Off Toggle" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="playerPower" export="playerPower:PowerOn" name="Power On" repeatrate="0" buttontag="Power On">
@@ -149,7 +135,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
       </parameter>
       <parameter default="1" name="Power On Off Toggle" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="playerPower" export="playerPower:PowerOff" name="Power Off" repeatrate="0" buttontag="Power Off">
@@ -157,7 +142,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
       </parameter>
       <parameter default="0" name="Power On Off Toggle" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="jumptoPlayPosition" name="Jump to Position" repeatrate="0">
@@ -165,7 +149,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
       </parameter>
       <parameter description="Position in Seconds" name="Position" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="transport" export="transport:PlayPause" name="Play/Pause Toggle" repeatrate="0" buttontag="Play/Pause">
@@ -173,7 +156,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter default="pause" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="transport" export="transport:ThumbsUp" name="Thumbs Up" repeatrate="0" buttontag="Thumbs Up">
@@ -181,7 +163,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter default="pandora_love" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function alias="transport" export="transport:ThumbsDown" name="Thumbs Down" repeatrate="0" buttontag="Thumbs Down">
@@ -189,7 +170,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter default="pandora_ban" name="Control" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="transport" name="Transport Control" repeatrate="0">
@@ -208,7 +188,6 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Shuffle" value="shuffle" />
         <choice name="Repeat" value="repeat" />
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="playerVolume" name="Player Volume" repeatrate="0">
@@ -224,7 +203,6 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Mute Toggle" value="muting" />
       </parameter>
       <parameter description="Volume Level [0-100]" name="Volume" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="playerPower" name="Player Power" repeatrate="0">
@@ -236,7 +214,6 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Off" value="0" />
         <choice name="Toggle" value="3" />
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
   </category>
 
@@ -250,7 +227,7 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Sync" value="Sync" />
         <choice name="Unsync" value="Sync" />
         <choice name="Toggle" value="Toggle" />
-        <choice name="Preset Variable" value="Variable" /> 
+        <choice name="Preset Variable" value="Variable" />
       </parameter>
       <parameter name="ViewID" type="deviceid" />
     </function>
@@ -279,7 +256,6 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Release Sync" value="ReleaseSync" />
         <choice name="Toggle" value="Toggle" />
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
   </category>
 
@@ -380,11 +356,11 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter name="Mode" type="mcinteger">
-        <choice name="Select Mode" value="0" /> 
+        <choice name="Select Mode" value="0" />
         <choice name="Play" value="1" />
         <choice name="Add Next" value="2" />
         <choice name="Add To End" value="3" />
-        <choice name="Favorites" value="4" /> 
+        <choice name="Favorites" value="4" />
         <choice name="Toggle" value="99" />
       </parameter>
       <parameter name="ViewID" type="deviceid" />
@@ -442,7 +418,6 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter description="list index" max="999999" min="0" name="index" type="integer" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="setPlaylistMode" name="Set Playlist Mode" repeatrate="0">
@@ -450,11 +425,10 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
 			</parameter>
       <parameter name="Player" type="mcinteger">
-        <choice name="Play" value="0" />        
+        <choice name="Play" value="0" />
         <choice name="Select/Edit" value="1" />
         <choice name="Toggle" value="99" />
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="adjustPlaylist" name="Adjust Playlist" repeatrate="0">
@@ -467,8 +441,7 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Move Item Up" value="moveup" />
         <choice name="Move Item Down" value="movedown" />
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
-    </function>   
+    </function>
   </category>
 
   <category name="Keyboard">
@@ -534,7 +507,7 @@ for (var i = 1; i <= playerCount; i++)
         <choice name="Clear" value="103" />
         <choice name="Space" value="104" />
       </parameter>
-      <parameter name="view" type="deviceid" />
+      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="sendSpecificKey" name="Write Specific Key" repeatrate="0">
@@ -558,14 +531,12 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="saveDefaultStartup" name="Save Default Station" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
   </category>
 
@@ -575,15 +546,13 @@ for (var i = 1; i <= playerCount; i++)
 <#= playerChoices #>
       </parameter>
       <parameter name="URL" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
-    
+
     <function export="playRandomPlaylist" name="Play a Random Playlist" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
       <parameter default="" name="subfolder" description="Favorites Subfolder Name" type="string" />
-      <parameter name="ViewID" type="deviceid" />
     </function>
   </category>
 
@@ -592,15 +561,13 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="printNowPlayingUrl" name="Print Now Playing URL to Log File" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
-    </function>    
+    </function>
   </category>
 
   <category name="Testing">
@@ -608,21 +575,18 @@ for (var i = 1; i <= playerCount; i++)
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="printBuffer" name="PrintBuffer" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
 			</parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="getPlayerStatus" name="Get Player Status" repeatrate="0">
       <parameter name="Player" type="mcinteger">
 <#= playerChoices #>
       </parameter>
-      <parameter name="ViewID" type="deviceid" />
     </function>
 
     <function export="browseTest" name="Browse Test" repeatrate="0">

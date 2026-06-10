@@ -150,17 +150,18 @@ function getEmptyActionItems(): ActionItems {
 }
 
 function buildRequestId(playerId: number | undefined, remoteId: number | undefined, correlationId?: number): string {
-    let id = (playerId ?? -1) + "_" + (remoteId ?? -1);
+    let id = (playerId ?? "") + "_" + (remoteId ?? "");
     if (correlationId !== undefined) { id += "_" + correlationId; }
     return id;
 }
 
 function parseRequestId(id: string): { playerId: number | undefined; remoteId: number | undefined; correlationId: number | undefined } {
     const parts = id.split("_");
+    const parseOptId = (s: string): number | undefined => { const n = parseInt(s, 10); return isNaN(n) ? undefined : n; };
     return {
-        playerId: parts.length > 0 ? parseInt(parts[0], 10) : undefined,
-        remoteId: parts.length > 1 ? parseInt(parts[1], 10) : undefined,
-        correlationId: parts.length > 2 ? parseInt(parts[2], 10) : undefined
+        playerId: parts.length > 0 ? parseOptId(parts[0]) : undefined,
+        remoteId: parts.length > 1 ? parseOptId(parts[1]) : undefined,
+        correlationId: parts.length > 2 ? parseOptId(parts[2]) : undefined
     };
 }
 
@@ -227,6 +228,14 @@ function getEmptyPlaylistItem(): PlaylistItem {
     }
 }
 
+
+function getPlayer(playerId: number): Player | null {
+    for (let i = 0; i < g_Players.length; i++) {
+        if (g_Players[i].Id === playerId) { return g_Players[i]; }
+    }
+    g_logger.logInfo('Could not find Player for PlayerId: ' + playerId, LogInfoLevel.High, 'getPlayer');
+    return null;
+}
 
 function getRemotePlayer(remoteId: number, playerId: number): RemotePlayer | null {
     for (let i = 0; i < g_RemotePlayers.length; i++) {

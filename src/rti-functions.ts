@@ -97,77 +97,77 @@ function setShowMoreOptionsPopup(playerId: number, mode: string, remoteId: numbe
     }
 }
 
-function getPlayerStatus(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
+function getPlayerStatus(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
     const json = buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
-        remotePlayer.Player.Server.ClientId,
+        player.Id,
+        undefined,
+        player.Server.ClientId,
         g_Slim_Request,
-        remotePlayer.Player.MacAddress,
+        player.MacAddress,
         [LyrionCmd.Menu, "items", 0, g_Max_Browse_Items, "direct:1"]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
+    player.Server.sendJsonCommand(json);
 }
 
-function printHomeMenu(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
+function printHomeMenu(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
     let outputString = "";
-    for (var i = 0; i < remotePlayer.Player.ParentMenu.ListItems.length; i++) {
-        var Title = remotePlayer.Player.ParentMenu.ListItems[i].MenuTitle;
+    for (var i = 0; i < player.ParentMenu.ListItems.length; i++) {
+        var Title = player.ParentMenu.ListItems[i].MenuTitle;
         outputString += Title + ":";
     }
     g_logger.logInfo(outputString.substring(0, outputString.length - 1), LogInfoLevel.Low);
 }
 
-function printNowPlayingUrl(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    g_logger.logInfo(remotePlayer.Player.Name + '  ' + remotePlayer.Player.NowPlayingUrl, LogInfoLevel.Low);
+function printNowPlayingUrl(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    g_logger.logInfo(player.Name + '  ' + player.NowPlayingUrl, LogInfoLevel.Low);
 }
 
-function playerPower(playerId: number, power: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
+function playerPower(playerId: number, power: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
     if (power == 3) {
-        power = remotePlayer.Player.PoweredOn ? 0 : 1;
+        power = player.PoweredOn ? 0 : 1;
     }
     const json = buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
-        remotePlayer.Player.Server.ClientId,
+        player.Id,
+        undefined,
+        player.Server.ClientId,
         g_Slim_Request,
-        remotePlayer.Player.MacAddress,
+        player.MacAddress,
         [LyrionCmd.Power, power]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
+    player.Server.sendJsonCommand(json);
 }
 
-function playerVolume(playerId: number, todo: string, volume: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
+function playerVolume(playerId: number, todo: string, volume: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
 
     if (todo == "up") {
-        remotePlayer.Player.Volume++;
-        if (remotePlayer.Player.Volume > 100) { remotePlayer.Player.Volume = 100; }
-        volume = remotePlayer.Player.Volume;
+        player.Volume++;
+        if (player.Volume > 100) { player.Volume = 100; }
+        volume = player.Volume;
     }
     else if (todo == "down") {
-        remotePlayer.Player.Volume--;
-        if (remotePlayer.Player.Volume < 0) { remotePlayer.Player.Volume = 0; }
-        volume = remotePlayer.Player.Volume;
+        player.Volume--;
+        if (player.Volume < 0) { player.Volume = 0; }
+        volume = player.Volume;
     }
 
-    const clientId = remotePlayer.Player.Server.ClientId;
-    const mac = remotePlayer.Player.MacAddress;
+    const clientId = player.Server.ClientId;
+    const mac = player.MacAddress;
     let json: string;
 
     if (todo.indexOf("muting") > -1) {
         if (todo.indexOf(" ") > -1) {
             const muteOff = parseInt(todo.substring(todo.indexOf(" ")), 10);
             json = buildSlimRequestJson(
-                remotePlayer.Player.Id,
-                remotePlayer.Remote.Id,
+                player.Id,
+                undefined,
                 clientId,
                 g_Slim_Request,
                 mac,
@@ -175,8 +175,8 @@ function playerVolume(playerId: number, todo: string, volume: number, remoteId: 
         }
         else {
             json = buildSlimRequestJson(
-                remotePlayer.Player.Id,
-                remotePlayer.Remote.Id,
+                player.Id,
+                undefined,
                 clientId,
                 g_Slim_Request,
                 mac,
@@ -185,41 +185,41 @@ function playerVolume(playerId: number, todo: string, volume: number, remoteId: 
     }
     else {
         json = buildSlimRequestJson(
-            remotePlayer.Player.Id,
-            remotePlayer.Remote.Id,
+            player.Id,
+            undefined,
             clientId,
             g_Slim_Request,
             mac,
             [LyrionCmd.Mixer, LyrionMixerCmd.Volume, volume]);
     }
-    remotePlayer.Player.Server.sendJsonCommand(json);
+    player.Server.sendJsonCommand(json);
 }
 
-function jumptoPlayPosition(playerId: number, location: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    if (remotePlayer.Player.CanSeek == true) {
-        var Position = Math.round((location / 100) * remotePlayer.Player.Duration);
-        remotePlayer.Player.NowPlayingTimer.Stop();
-        remotePlayer.Player.Progress = Position;
-        remotePlayer.Player.Remaining = remotePlayer.Player.Duration - remotePlayer.Player.Progress;
-        remotePlayer.Player.ProgressBar = (Math.floor((Position / remotePlayer.Player.Duration) * 100));
+function jumptoPlayPosition(playerId: number, location: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    if (player.CanSeek == true) {
+        var Position = Math.round((location / 100) * player.Duration);
+        player.NowPlayingTimer.Stop();
+        player.Progress = Position;
+        player.Remaining = player.Duration - player.Progress;
+        player.ProgressBar = (Math.floor((Position / player.Duration) * 100));
         const json = buildSlimRequestJson(
-            remotePlayer.Player.Id,
-            remotePlayer.Remote.Id,
-            remotePlayer.Player.Server.ClientId,
+            player.Id,
+            undefined,
+            player.Server.ClientId,
             g_Slim_Request,
-            remotePlayer.Player.MacAddress,
+            player.MacAddress,
             [LyrionCmd.Time, Position]);
-        remotePlayer.Player.Server.sendJsonCommand(json);
+        player.Server.sendJsonCommand(json);
     }
 }
 
-function transport(playerId: number, command: string, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const clientId = remotePlayer.Player.Server.ClientId;
-    const mac = remotePlayer.Player.MacAddress;
+function transport(playerId: number, command: string): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    const clientId = player.Server.ClientId;
+    const mac = player.MacAddress;
     let cmd: LyrionCommandArray;
     switch (command) {
         case "play":
@@ -252,9 +252,9 @@ function transport(playerId: number, command: string, remoteId: number): void {
         default:
             return;
     }
-    remotePlayer.Player.Server.sendJsonCommand(buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
+    player.Server.sendJsonCommand(buildSlimRequestJson(
+        player.Id,
+        undefined,
         clientId,
         g_Slim_Request,
         mac,
@@ -457,17 +457,17 @@ function browseBack(playerId: number, remoteId: number): void {
     remotePlayer.ListBack();
 }
 
-function playListSelection(playerId: number, index: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
+function playListSelection(playerId: number, index: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
     const json = buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
-        remotePlayer.Player.Server.ClientId,
+        player.Id,
+        undefined,
+        player.Server.ClientId,
         g_Slim_Request,
-        remotePlayer.Player.MacAddress,
+        player.MacAddress,
         [LyrionCmd.Playlist, LyrionPlaylistCmd.Index, index]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
+    player.Server.sendJsonCommand(json);
 }
 
 function jumpToBrowseLocation(playerId: number, service: string, remoteId: number): void {
@@ -551,36 +551,36 @@ function jumpToBrowseLocation(playerId: number, service: string, remoteId: numbe
     remotePlayer.Player.Server.sendJsonCommand(json, isRpc);
 }
 
-function saveDefaultStartup(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    if (remotePlayer.Player.NowPlayingUrl.length > 0) {
-        Persistence.Delete("VortexBoxDefault_" + remotePlayer.Player.MacAddress);
-        Persistence.Write("VortexBoxDefault_" + remotePlayer.Player.MacAddress, remotePlayer.Player.NowPlayingUrl);
+function saveDefaultStartup(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    if (player.NowPlayingUrl.length > 0) {
+        Persistence.Delete("VortexBoxDefault_" + player.MacAddress);
+        Persistence.Write("VortexBoxDefault_" + player.MacAddress, player.NowPlayingUrl);
         Persistence.Save();
     }
 }
 
-function playDefaultStation(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const url = Persistence.Read("VortexBoxDefault_" + remotePlayer.Player.MacAddress);
+function playDefaultStation(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    const url = Persistence.Read("VortexBoxDefault_" + player.MacAddress);
     if (url.length > 0) {
-        playDirectUrlForPlayer(remotePlayer, url);
+        playDirectUrlForPlayer(player, url);
     }
 }
 
-function playDirectUrl(playerId: number, url: string, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    playDirectUrlForPlayer(remotePlayer, url);
+function playDirectUrl(playerId: number, url: string): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    playDirectUrlForPlayer(player, url);
 }
 
-function playRandomPlaylist(playerId: number, folder: string, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const json = buildRpcRequestJson("play_random_favorite::" + remotePlayer.Player.MacAddress + "::" + folder, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100]);
-    remotePlayer.Player.Server.sendJsonCommand(json, true);
+function playRandomPlaylist(playerId: number, folder: string): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    const json = buildRpcRequestJson("play_random_favorite::" + player.MacAddress + "::" + folder, "", [LyrionCmd.Favorites, LyrionFavoritesCmd.Items, 0, 100]);
+    player.Server.sendJsonCommand(json, true);
 }
 
 function browseTest(playerId: number, service: string, remoteId: number): void {
@@ -636,25 +636,22 @@ function browseTest(playerId: number, service: string, remoteId: number): void {
     remotePlayer.Player.Server.sendJsonCommand(json, isRpc);
 }
 
-function subscribeTest(playerId: number, remoteId: number): void {
-    const remotePlayer = getRemotePlayer(remoteId, playerId);
-    if (remotePlayer == null) { return; }
-    const json = buildSlimSubscribeJson(remotePlayer.Player.Id, remotePlayer.Remote.Id, remotePlayer.Player.Server.ClientId, "slim/serverstatus", "", [LyrionCmd.ServerStatus, 0, 255, "prefs:ignoredarticles,browseagelimit,noGenreFilter,PLUGIN_TRACKSTAT,audiodir", "playerprefs:playtrackalbum,digitalVolumeControl", "subscribe:60"]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
+function subscribeTest(playerId: number): void {
+    const player = getPlayer(playerId);
+    if (player == null) { return; }
+    const json = buildSlimSubscribeJson(player.Id, undefined, player.Server.ClientId, "slim/serverstatus", "", [LyrionCmd.ServerStatus, 0, 255, "prefs:ignoredarticles,browseagelimit,noGenreFilter,PLUGIN_TRACKSTAT,audiodir", "playerprefs:playtrackalbum,digitalVolumeControl", "subscribe:60"]);
+    player.Server.sendJsonCommand(json);
 }
 
-function printBuffer(_playerId: number, remoteId: number): void {
-    g_logger.logInfo('printBuffer requested by remote ' + remoteId + ': HTTP parser buffer is internal (two-state machine).', LogInfoLevel.Low);
+function printBuffer(_playerId: number): void {
+    g_logger.logInfo('printBuffer: HTTP parser buffer is internal (two-state machine).', LogInfoLevel.Low);
 }
 
-function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo: string, remoteId: number): void {
-    const slaveRemotePlayer = getRemotePlayer(remoteId, slavePlayerId);
-    const masterRemotePlayer = getRemotePlayer(remoteId, masterPlayerId);
+function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo: string): void {
+    const slavePlayer = getPlayer(slavePlayerId);
+    const masterPlayer = getPlayer(masterPlayerId);
 
-    if (!slaveRemotePlayer || !masterRemotePlayer) { return; }
-
-    const slavePlayer = slaveRemotePlayer.Player;
-    const masterPlayer = masterRemotePlayer.Player;
+    if (!slavePlayer || !masterPlayer) { return; }
 
     let isAdd = true;
     switch (todo) {
@@ -671,14 +668,14 @@ function syncPlayerToPlayer(slavePlayerId: number, masterPlayerId: number, todo:
     const json = isAdd
         ? buildSlimRequestJson(
             slavePlayer.Id,
-            remoteId,
+            undefined,
             masterPlayer.Server.ClientId,
             g_Slim_Request,
             masterPlayer.MacAddress,
             [LyrionCmd.Sync, slavePlayer.MacAddress])
         : buildSlimRequestJson(
             slavePlayer.Id,
-            remoteId,
+            undefined,
             masterPlayer.Server.ClientId,
             g_Slim_Request,
             slavePlayer.MacAddress,
@@ -697,7 +694,7 @@ function browseSelection(playerId: number, index: number, remoteId: number): voi
     const addNextMode = SystemVars.Read("AddNextModeP" + paddedPlayerId + "%" + remoteId);
     const selectMode = SystemVars.Read("SelectModeP" + paddedPlayerId + "%" + remoteId);
 
-    let mode;
+    let mode: string;
 
     if (favoritesMode == true) { mode = "Favorite"; }
     else if (playMode == true) { mode = "Play"; }
@@ -706,19 +703,19 @@ function browseSelection(playerId: number, index: number, remoteId: number): voi
     else if (selectMode == true) { mode = "Select"; }
     else {
         setBrowseMode(playerId, 0, remoteId);
-        browseSelection(playerId, index, remoteId);
+        mode = "Select";
     }
 
     browseSelectionAction(playerId, mode, index, remoteId);
 }
 
-function playDirectUrlForPlayer(remotePlayer: RemotePlayer, url: string): void {
+function playDirectUrlForPlayer(player: Player, url: string): void {
     const json = buildSlimRequestJson(
-        remotePlayer.Player.Id,
-        remotePlayer.Remote.Id,
-        remotePlayer.Player.Server.ClientId,
+        player.Id,
+        undefined,
+        player.Server.ClientId,
         g_Slim_Request,
-        remotePlayer.Player.MacAddress,
+        player.MacAddress,
         [LyrionCmd.Playlist, LyrionPlaylistCmd.Play, url]);
-    remotePlayer.Player.Server.sendJsonCommand(json);
+    player.Server.sendJsonCommand(json);
 }
