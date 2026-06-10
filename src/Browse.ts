@@ -121,8 +121,8 @@ function parseSubMenu(msg: LyrionCometdMessage, server: Server): void {
         remotePlayer = getRemotePlayer(remoteId, playerId);
     }
 
-    const totalItems = data.count ?? 0;
-    const offset = data.offset ?? 0;
+    const totalItems = Number(data.count ?? 0);
+    const offset = Number(data.offset ?? 0);
     const itemCount = data.item_loop.length;
     const itemsCollected = offset + itemCount;
 
