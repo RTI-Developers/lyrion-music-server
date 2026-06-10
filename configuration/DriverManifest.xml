@@ -6,7 +6,7 @@
   copyright=""
   deviceManufacturer="Lyrion"
   deviceModel="Lyrion Music Server"
-  driverVersion="2.0"
+  driverVersion="1.0"
   id="{9ABA89AC-DFB4-478D-8E95-A8DB901BE9D4}"
   minimumRuntimeVersion="20"
   minimumSoftwareVersion="9.9"
